@@ -5,26 +5,26 @@ require 'fixtures/inventory'
 class SingletonTest < ActiveSupport::TestCase
   def setup_weather
     weather  = { :status => 'Sunny', :temperature => 67 }
-    ActiveResource::HttpMock.respond_to do |mock|
-      mock.get    '/weather.json', {}, weather.to_json
-      mock.get    '/weather.json?degrees=fahrenheit', {}, weather.merge(:temperature => 100).to_json
-      mock.post   '/weather.json', {}, weather.to_json, 201, 'Location' => '/weather.json'
-      mock.delete '/weather.json', {}, nil
-      mock.put    '/weather.json', {}, nil, 204   
+    Weather.set_adapter(:test) do |stub|
+      stub.get    ('/weather.json')                     {[200, {}, weather.to_json]}
+      stub.get    ('/weather.json?degrees=fahrenheit')  {[200, {}, weather.merge(:temperature => 100).to_json]}
+      stub.post   ('/weather.json')                     {[201, {'Location' => '/weather.json'}, weather.to_json]}
+      stub.delete ('/weather.json')                     {[200, {}, nil]}
+      stub.put    ('/weather.json')                     {[204, {}, nil]}
     end
   end
 
   def setup_weather_not_found
-    ActiveResource::HttpMock.respond_to do |mock|
-      mock.get '/weather.json', {}, nil, 404
+    Weather.set_adapter(:test) do |stub|
+      stub.get    ('/weather.json')                     {[404, {}, nil]}
     end
   end
 
   def setup_inventory
     inventory = {:status => 'Sold Out', :total => 10, :used => 10}.to_json
 
-    ActiveResource::HttpMock.respond_to do |mock|
-      mock.get '/products/5/inventory.json', {}, inventory
+    Inventory.set_adapter(:test) do |stub|
+      stub.get ('/products/5/inventory.json') { [200, {}, inventory] }
     end
   end
 
