@@ -10,6 +10,7 @@ require 'active_support/core_ext/object/to_query'
 require 'active_support/core_ext/object/duplicable'
 require 'set'
 require 'uri'
+require 'faraday'
 
 require 'active_support/core_ext/uri'
 require 'active_resource/exceptions'
@@ -411,6 +412,30 @@ module ActiveResource
         @known_attributes ||= []
       end
 
+      # Set the adapter to use.
+      #
+      # TODO finish docs.
+      #
+      # TODO there is a better way to do this....
+      #
+      def set_adapter(adapter, *args, &block)
+        @adapter = adapter
+        @adapter_args = args
+        @adapter_block = block
+      end
+
+      def adapter
+        @adapter ||= :net_http
+      end
+
+      def adapter_args
+        @adapter_args ||= nil
+      end
+
+      def adapter_block
+        @adapter_block ||= nil
+      end
+
       # Gets the URI of the REST resources to map for this class. The site variable is required for
       # Active Resource's mapping to work.
       def site
@@ -575,13 +600,20 @@ module ActiveResource
       # or not (defaults to <tt>false</tt>).
       def connection(refresh = false)
         if defined?(@connection) || superclass == Object
-          @connection = Connection.new(site, format) if refresh || @connection.nil?
-          @connection.proxy = proxy if proxy
-          @connection.user = user if user
-          @connection.password = password if password
-          @connection.auth_type = auth_type if auth_type
-          @connection.timeout = timeout if timeout
-          @connection.ssl_options = ssl_options if ssl_options
+          if refresh || @connection.nil?
+            @connection = Faraday.new(site) do |builder|
+              builder.adapter adapter, *adapter_args, &adapter_block
+              # Fill in other options here on builder if possible or use a hash
+              # in the args to Faraday.new
+              #
+              # @connection.proxy = proxy if proxy
+              # @connection.user = user if user
+              # @connection.password = password if password
+              # @connection.auth_type = auth_type if auth_type
+              # @connection.timeout = timeout if timeout
+              # @connection.ssl_options = ssl_options if ssl_options
+            end
+          end
           @connection
         else
           superclass.connection
@@ -1400,7 +1432,7 @@ module ActiveResource
       # Create (i.e., \save to the remote service) the \new resource.
       def create
         run_callbacks :create do
-          connection.post(collection_path, encode, self.class.headers).tap do |response|
+          connection.post(collection_path).tap do |response|
             self.id = id_from_response(response)
             load_attributes_from_response(response)
           end
@@ -1408,8 +1440,8 @@ module ActiveResource
       end
 
       def load_attributes_from_response(response)
-        if (response_code_allows_body?(response.code) &&
-            (response['Content-Length'].nil? || response['Content-Length'] != "0") &&
+        if (response_code_allows_body?(response.status) &&
+            (response.headers['Content-Length'].nil? || response.headers['Content-Length'] != "0") &&
             !response.body.nil? && response.body.strip.size > 0)
           load(self.class.format.decode(response.body), true)
           @persisted = true
@@ -1418,7 +1450,7 @@ module ActiveResource
 
       # Takes a response from a typical create post and pulls the ID out
       def id_from_response(response)
-        response['Location'][/\/([^\/]*?)(\.\w+)?$/, 1] if response['Location']
+        response.headers['Location'][/\/([^\/]*?)(\.\w+)?$/, 1] if response.headers['Location']
       end
 
       def element_path(options = nil)

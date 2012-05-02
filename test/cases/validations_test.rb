@@ -9,8 +9,8 @@ class ValidationsTest < ActiveModel::TestCase
   VALID_PROJECT_HASH = { :name => "My Project", :description => "A project" }
   def setup
     @my_proj = { "person" => VALID_PROJECT_HASH }.to_json
-    ActiveResource::HttpMock.respond_to do |mock|
-      mock.post "/projects.json", {}, @my_proj, 201, 'Location' => '/projects/5.json'
+    Project.set_adapter(:test) do |stub|
+      stub.post("/projects.json") { [201, {'Location' => '/projects/5.json'}, @my_proj] }
     end
   end
 
