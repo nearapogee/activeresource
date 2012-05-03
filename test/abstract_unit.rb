@@ -104,54 +104,55 @@ def setup_response
   @product = {id: 1, name: 'Rails book'}.to_json
   @inventory = {status: 'Sold Out', total: 10, used: 10}.to_json
 
-  ActiveResource::HttpMock.respond_to do |mock|
-    mock.get    "/people/1.json",               {}, @matz
-    mock.get    "/people/1.xml",                {}, @matz_xml
-    mock.get    "/people/2.xml",                {}, @david
-    mock.get    "/people/5.xml",                {}, @marty
-    mock.get    "/people/Greg.json",            {}, @greg
-    mock.get    "/people/6.json",               {}, @joe
-    mock.get    "/people/4.json",               { 'key' => 'value' }, nil, 404
-    mock.put    "/people/1.json",               {}, nil, 204
-    mock.delete "/people/1.json",               {}, nil, 200
-    mock.delete "/people/2.xml",                {}, nil, 400
-    mock.get    "/people/99.json",              {}, nil, 404
-    mock.post   "/people.json",                 {}, @rick, 201, 'Location' => '/people/5.xml'
-    mock.get    "/people.json",                 {}, @people
-    mock.get    "/people/1/addresses.json",     {}, @addresses
-    mock.get    "/people/1/addresses/1.json",   {}, @addy
-    mock.get    "/people/1/addresses/2.xml",    {}, nil, 404
-    mock.get    "/people/2/addresses.json",     {}, nil, 404
-    mock.get    "/people/2/addresses/1.xml",    {}, nil, 404
-    mock.get    "/people/Greg/addresses/1.json", {}, @addy
-    mock.put    "/people/1/addresses/1.json",   {}, nil, 204
-    mock.delete "/people/1/addresses/1.json",   {}, nil, 200
-    mock.post   "/people/1/addresses.json",     {}, nil, 201, 'Location' => '/people/1/addresses/5'
-    mock.get    "/people/1/addresses/99.json",  {}, nil, 404
-    mock.get    "/people//addresses.xml",       {}, nil, 404
-    mock.get    "/people//addresses/1.xml",     {}, nil, 404
-    mock.put    "/people//addresses/1.xml",     {}, nil, 404
-    mock.delete "/people//addresses/1.xml",     {}, nil, 404
-    mock.post   "/people//addresses.xml",       {}, nil, 404
-    mock.head   "/people/1.json",               {}, nil, 200
-    mock.head   "/people/Greg.json",            {}, nil, 200
-    mock.head   "/people/99.json",              {}, nil, 404
-    mock.head   "/people/1/addresses/1.json",   {}, nil, 200
-    mock.head   "/people/1/addresses/2.json",   {}, nil, 404
-    mock.head   "/people/2/addresses/1.json",    {}, nil, 404
-    mock.head   "/people/Greg/addresses/1.json", {}, nil, 200
+  ActiveResource::Base.set_adapter(:test) do |stub|
+    stub.get("/people/1.json")                {[200, {}, @matz]}
+    stub.get("/people/1.xml")                 {[200, {}, @matz_xml]}
+    stub.get("/people/2.xml")                 {[200, {}, @david ]} 
+    stub.get("/people/5.xml")                 {[200, {}, @marty ]} 
+    stub.get("/people/Greg.json")             {[200, {}, @greg]}
+    stub.get("/people/6.json")                {[200, {}, @joe]}
+    stub.get("/people/4.json")                {[404, {'key' => 'value'}, nil]}
+    stub.put("/people/1.json")                {[204, {}, nil]}
+    stub.delete("/people/1.json")             {[200, {}, nil]}
+    stub.delete("/people/2.xml")              {[400, {}, nil]}
+    stub.get("/people/99.json")               {[404, {}, nil]}
+    stub.post("/people.json")                 {[201, {'Location' => '/people/5.xml'}, @rick]}
+    stub.get("/people.json")                  {[200, {}, @people]}
+    stub.get("/people/1/addresses.json")      {[200, {}, @addresses]}
+    stub.get("/people/1/addresses/1.json")    {[200, {}, @addy]}
+    stub.get("/people/1/addresses/2.xml")     {[404, {}, nil]}
+    stub.get("/people/2/addresses.json")      {[404, {}, nil]}
+    stub.get("/people/2/addresses/1.xml")     {[404, {}, nil]}
+    stub.get("/people/Greg/addresses/1.json") {[200, {}, @addy]}
+    stub.put("/people/1/addresses/1.json")    {[204, {}, nil]}
+    stub.delete("/people/1/addresses/1.json") {[200, {}, nil]}
+    stub.post("/people/1/addresses.json")     {[200, {'Location' => '/people/1/addresses/5'}, nil]}
+    stub.get("/people/1/addresses/99.json")   {[404, {}, nil]}
+    stub.get("/people//addresses.xml")        {[404, {}, nil]}
+    stub.get("/people//addresses/1.xml")      {[404, {}, nil]}
+    stub.put("/people//addresses/1.xml")      {[404, {}, nil]}
+    stub.delete("/people//addresses/1.xml")   {[404, {}, nil]}
+    stub.post("/people//addresses.xml")       {[404, {}, nil]}
+    stub.head("/people/1.json")               {[200, {}, nil]}
+    stub.head("/people/Greg.json")            {[200, {}, nil]}
+    stub.head("/people/99.json")              {[404, {}, nil]}
+    stub.head("/people/1/addresses/1.json")   {[200, {}, nil]}
+    stub.head("/people/1/addresses/2.json")   {[404, {}, nil]}
+    stub.head("/people/2/addresses/1.json")   {[404, {}, nil]}
+    stub.head("/people/Greg/addresses/1.json"){[200, {}, nil]}
     # customer
-    mock.get    "/customers/1.json",             {}, @luis
+    mock.get("/customers/1.json")             {[200, {}, @luis]}
     # sound
-    mock.get    "/sounds/1.json",                {}, @startup_sound
+    mock.get("/sounds/1.json")                {[200, {}, @startup_sound]}
     # post
-    mock.get    "/posts.json",                   {}, @posts
-    mock.get    "/posts/1.json",                 {}, @post
-    mock.get    "/posts/1/comments.json",        {}, @comments
+    mock.get("/posts.json")                   {[200, {}, @posts]}
+    mock.get("/posts/1.json")                 {[200, {}, @post]}
+    mock.get("/posts/1/comments.json")        {[200, {}, @comments]}
     # products
-    mock.get '/products/1.json', {}, @product
-    mock.get '/products/1/inventory.json', {}, @inventory
+    mock.get('/products/1.json')              {[200, {}, @product]}
+    mock.get('/products/1/inventory.json')    {[200, {}, @inventory]}
   end
+
 
   Person.user = nil
   Person.password = nil
