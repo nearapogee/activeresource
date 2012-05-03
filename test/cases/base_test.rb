@@ -764,15 +764,15 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal 25, rick.age
 
     # Test that save exceptions get bubbled up too
-    ActiveResource::HttpMock.respond_to do |mock|
-      mock.post   "/people.json", {}, nil, 409
+    ActiveResource::Base.set_adapter(:test) do |stub|
+      stub.post("/people.json") {[409, {}, nil]}
     end
     assert_raise(ActiveResource::ResourceConflict) { Person.create(:name => 'Rick') }
   end
 
   def test_create_without_location
-    ActiveResource::HttpMock.respond_to do |mock|
-      mock.post   "/people.json", {}, nil, 201
+    ActiveResource::Base.set_adapter(:test) do |stub|
+      stub.post("/people.json") {[201, {}, nil]}
     end
     person = Person.create(:name => 'Rick')
     assert_nil person.id
@@ -838,9 +838,9 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   def test_update_conflict
-    ActiveResource::HttpMock.respond_to do |mock|
-      mock.get "/people/2.json", {}, @david
-      mock.put "/people/2.json", @default_request_headers, nil, 409
+    ActiveResource::Base.set_adapter(:test) do |stub|
+      stub.get("/people/2.json") {[200, {}, @david]}
+      stub.put("/people/2.json") {[409, {}, nil]} # NOTE: original had headers @default_request_headers
     end
     assert_raise(ActiveResource::ResourceConflict) { Person.find(2).save }
   end
@@ -896,48 +896,48 @@ class BaseTest < ActiveSupport::TestCase
 
   def test_destroy
     assert Person.find(1).destroy
-    ActiveResource::HttpMock.respond_to do |mock|
-      mock.get "/people/1.json", {}, nil, 404
+    ActiveResource::Base.set_adapter(:test) do |stub|
+      stub.get("/people/1.json") {[404, {}, nil]}
     end
     assert_raise(ActiveResource::ResourceNotFound) { Person.find(1).destroy }
   end
 
   def test_destroy_with_custom_prefix
     assert StreetAddress.find(1, :params => { :person_id => 1 }).destroy
-    ActiveResource::HttpMock.respond_to do |mock|
-      mock.get "/people/1/addresses/1.json", {}, nil, 404
+    ActiveResource::Base.set_adapter(:test) do |stub|
+      stub.get("/people/1/addresses/1.json") {[404, {}, nil]}
     end
     assert_raise(ActiveResource::ResourceNotFound) { StreetAddress.find(1, :params => { :person_id => 1 }) }
   end
 
   def test_destroy_with_410_gone
     assert Person.find(1).destroy
-    ActiveResource::HttpMock.respond_to do |mock|
-      mock.get "/people/1.json", {}, nil, 410
+    ActiveResource::Base.set_adapter(:test) do |stub|
+      stub.get("/people/1.json") {[410, {}, nil]}
     end
     assert_raise(ActiveResource::ResourceGone) { Person.find(1).destroy }
   end
 
   def test_delete
     assert Person.delete(1)
-    ActiveResource::HttpMock.respond_to do |mock|
-      mock.get "/people/1.json", {}, nil, 404
+    ActiveResource::Base.set_adapter(:test) do |stub|
+      stub.get("/people/1.json") {[404, {}, nil]}
     end
     assert_raise(ActiveResource::ResourceNotFound) { Person.find(1) }
   end
 
   def test_delete_with_custom_prefix
     assert StreetAddress.delete(1, :person_id => 1)
-    ActiveResource::HttpMock.respond_to do |mock|
-      mock.get "/people/1/addresses/1.json", {}, nil, 404
+    ActiveResource::Base.set_adapter(:test) do |stub|
+      stub.get("/people/1/addresses/1.json") {[404, {}, nil]}
     end
     assert_raise(ActiveResource::ResourceNotFound) { StreetAddress.find(1, :params => { :person_id => 1 }) }
   end
 
   def test_delete_with_410_gone
     assert Person.delete(1)
-    ActiveResource::HttpMock.respond_to do |mock|
-      mock.get "/people/1.json", {}, nil, 410
+    ActiveResource::Base.set_adapter(:test) do |stub|
+      stub.get("/people/1.json") {[410, {}, nil]}
     end
     assert_raise(ActiveResource::ResourceGone) { Person.find(1) }
   end
@@ -996,17 +996,17 @@ class BaseTest < ActiveSupport::TestCase
     end
   end
 
-  def test_exists_without_http_mock
+  def test_exists_without_http_stub
     http = Net::HTTP.new(Person.site.host, Person.site.port)
     ActiveResource::Connection.any_instance.expects(:http).returns(http)
     http.expects(:request).returns(ActiveResource::Response.new(""))
 
-    assert Person.exists?('not-mocked')
+    assert Person.exists?('not-stubed')
   end
 
   def test_exists_with_410_gone
-    ActiveResource::HttpMock.respond_to do |mock|
-      mock.head "/people/1.json", {}, nil, 410
+    ActiveResource::Base.set_adapter(:test) do |stub|
+      stub.head("/people/1.json") {[410, {}, nil]}
     end
 
     assert !Person.exists?(1)
@@ -1178,8 +1178,8 @@ class BaseTest < ActiveSupport::TestCase
   def test_create_with_custom_primary_key
     silver_plan = { :plan => { :code => "silver", :price => 5.00 } }.to_json
 
-    ActiveResource::HttpMock.respond_to do |mock|
-      mock.post "/plans.json", {}, silver_plan, 201, 'Location' => '/plans/silver.json'
+    ActiveResource::Base.set_adapter(:test) do |stub|
+      stub.post("/plans.json") {[201, {}, silver_plan]}
     end
 
     plan = SubscriptionPlan.new(:code => "silver", :price => 5.00)
@@ -1193,9 +1193,9 @@ class BaseTest < ActiveSupport::TestCase
     silver_plan = { :plan => { :code => "silver", :price => 5.00 } }.to_json
     silver_plan_updated = { :plan => { :code => "silver", :price => 10.00 } }.to_json
 
-    ActiveResource::HttpMock.respond_to do |mock|
-      mock.get "/plans/silver.json", {}, silver_plan
-      mock.put "/plans/silver.json", {}, silver_plan_updated, 201, 'Location' => '/plans/silver.json'
+    ActiveResource::Base.set_adapter(:test) do |stub|
+      stub.get("/plans/silver.json") {[200, {}, silver_plan]}
+      stub.put("/plans/silver.json") {[201, {'Location' => '/plans/silver.json'}, silver_plan]}
     end
 
     plan = SubscriptionPlan.find("silver")

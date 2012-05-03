@@ -22,11 +22,11 @@ class ObservingTest < ActiveSupport::TestCase
   def setup
     @matz = { 'person' => { :id => 1, :name => 'Matz' } }.to_json
 
-    ActiveResource::HttpMock.respond_to do |mock|
-      mock.get    "/people/1.json", {}, @matz
-      mock.post   "/people.json",   {}, @matz, 201, 'Location' => '/people/1.json'
-      mock.put    "/people/1.json", {}, nil, 204
-      mock.delete "/people/1.json", {}, nil, 200
+    ActiveResource::Base.set_adapter(:test) do |stub|
+      stub.get("/people/1.json") {[200, {}, @matz]}
+      stub.post("/people.json") {[201, {'Location' => '/people/1.json'}, @matz]}
+      stub.put("/people/1.json") {[204, {}, nil]}
+      stub.delete("/people/1.json") {[200, {}, nil]}
     end
 
     PersonObserver.instance

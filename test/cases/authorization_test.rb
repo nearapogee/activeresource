@@ -4,10 +4,10 @@ class AuthorizationTest < ActiveSupport::TestCase
   Response = Struct.new(:code)
 
   def setup
-    @conn = ActiveResource::Connection.new('http://localhost')
+    @conn = Faraday.new('http://localhost')
     @matz  = { :person => { :id => 1, :name => 'Matz' } }.to_json
     @david = { :person => { :id => 2, :name => 'David' } }.to_json
-    @authenticated_conn = ActiveResource::Connection.new("http://david:test123@localhost")
+    @authenticated_conn = Faraday.new("http://david:test123@localhost")
     @basic_authorization_request_header = { 'Authorization' => 'Basic ZGF2aWQ6dGVzdDEyMw==' }
   end
 
@@ -22,13 +22,13 @@ class BasicAuthorizationTest < AuthorizationTest
     super
     @authenticated_conn.auth_type = :basic
 
-    ActiveResource::HttpMock.respond_to do |mock|
-      mock.get    "/people/2.json",           @basic_authorization_request_header, @david
-      mock.get    "/people/1.json",           @basic_authorization_request_header, nil, 401, { 'WWW-Authenticate' => 'i_should_be_ignored' }
-      mock.put    "/people/2.json",           @basic_authorization_request_header, nil, 204
-      mock.delete "/people/2.json",           @basic_authorization_request_header, nil, 200
-      mock.post   "/people/2/addresses.json", @basic_authorization_request_header, nil, 201, 'Location' => '/people/1/addresses/5'
-      mock.head   "/people/2.json",           @basic_authorization_request_header, nil, 200
+    ActiveResource::Base.set_adapter(:test) do |stub|
+      stub.get("/people/2.json")              {|env| env[:request_headers] = @basic_authorization_request_header; [200, {}, @david]}
+      stub.get("/people/1.json")              {|env| env[:request_headers] = @basic_authorization_request_header; [401, {'WWW-Authenticate' => 'i_should_be_ignored'}, '']}
+      stub.put("/people/2.json")              {|env| env[:request_headers] = @basic_authorization_request_header; [204, {}, '']}
+      stub.delete("/people/2.json")           {|env| env[:request_headers] = @basic_authorization_request_header; [200, {}, '']}
+      stub.post("/people/2/addresses.json")   {|env| env[:request_headers] = @basic_authorization_request_header; [201, {'Location' => '/people/1/addresses/5'}, '']}
+      stub.head("/people/2.json")             {|env| env[:request_headers] = @basic_authorization_request_header; [200, {}, '']}
     end
   end
 
@@ -163,22 +163,22 @@ class DigestAuthorizationTest < AuthorizationTest
 
     @nonce = "MTI0OTUxMzc4NzpjYWI3NDM3NDNmY2JmODU4ZjQ2ZjcwNGZkMTJiMjE0NA=="
 
-    ActiveResource::HttpMock.respond_to do |mock|
-      mock.get    "/people/2.json",           { 'Authorization' => blank_digest_auth_header("/people/2.json", "fad396f6a34aeba28e28b9b96ddbb671") }, nil, 401, { 'WWW-Authenticate' => response_digest_auth_header }
-      mock.get    "/people/2.json",           { 'Authorization' => request_digest_auth_header("/people/2.json", "c064d5ba8891a25290c76c8c7d31fb7b") }, @david, 200
-      mock.get    "/people/1.json",           { 'Authorization' => request_digest_auth_header("/people/1.json", "f9c0b594257bb8422af4abd429c5bb70") }, @matz, 200
+    ActiveResource::Base.set_adapter(:test) do |stub|
+      stub.get("/people/2.json") { |env| env[:request_headers]['Authorization'] = blank_digest_auth_header("/people/2.json", "fad396f6a34aeba28e28b9b96ddbb671"); [401, {'WWW-Authenticate' => response_digest_auth_header}, '']}
+      stub.get("/people/2.json") { |env| env[:request_headers]['Authorization'] = request_digest_auth_header("/people/2.json", "c064d5ba8891a25290c76c8c7d31fb7b"); [200, {}, @david]}
+      stub.get("/people/1.json") { |env| env[:request_headers]['Authorization'] = request_digest_auth_header("/people/1.json", "f9c0b594257bb8422af4abd429c5bb70"); [200, {}, @matz]}
 
-      mock.put    "/people/2.json",           { 'Authorization' => blank_digest_auth_header("/people/2.json", "50a685d814f94665b9d160fbbaa3958a") }, nil, 401, { 'WWW-Authenticate' => response_digest_auth_header }
-      mock.put    "/people/2.json",           { 'Authorization' => request_digest_auth_header("/people/2.json", "5a75cde841122d8e0f20f8fd1f98a743") }, nil, 204
+      stub.put("/people/2.json") { |env| env[:request_headers]['Authorization'] = blank_digest_auth_header("/people/2.json", "50a685d814f94665b9d160fbbaa3958a"); [401, {'WWW-Authenticate' => response_digest_auth_header}, '']}
+      stub.put("/people/2.json") { |env| env[:request_headers]['Authorization'] = request_digest_auth_header("/people/2.json", "5a75cde841122d8e0f20f8fd1f98a743"); [204, {}, '']}
 
-      mock.delete "/people/2.json",           { 'Authorization' => blank_digest_auth_header("/people/2.json", "846f799107eab5ca4285b909ee299a33") }, nil, 401, { 'WWW-Authenticate' => response_digest_auth_header }
-      mock.delete "/people/2.json",           { 'Authorization' => request_digest_auth_header("/people/2.json", "9f5b155224edbbb69fd99d8ce094681e") }, nil, 200
+      stub.delete("/people/2.json") { |env| env[:request_headers]['Authorization'] = blank_digest_auth_header("/people/2.json", "846f799107eab5ca4285b909ee299a33"); [401, {'WWW-Authenticate'=>response_digest_auth_header}, '']}
+      stub.delete("/people/2.json") { |env| env[:request_headers]['Authorization'] = request_digest_auth_header("/people/2.json", "9f5b155224edbbb69fd99d8ce094681e"); [200, {}, '']}
 
-      mock.post   "/people/2/addresses.json", { 'Authorization' => blank_digest_auth_header("/people/2/addresses.json", "6984d405ff3d9ed07bbf747dcf16afb0") }, nil, 401, { 'WWW-Authenticate' => response_digest_auth_header }
-      mock.post   "/people/2/addresses.json", { 'Authorization' => request_digest_auth_header("/people/2/addresses.json", "4bda6a28dbf930b5af9244073623bd04") }, nil, 201, 'Location' => '/people/1/addresses/5'
+      stub.post("/people/2/addresses.json") { |env| env[:request_headers]['Authorization'] = blank_digest_auth_header("/people/2/addresses.json", "6984d405ff3d9ed07bbf747dcf16afb0"); [401, {'WWW-Authenticate'=>response_digest_auth_header}, '']}
+      stub.post("/people/2/addresses.json") { |env| env[:request_headers]['Authorization'] = request_digest_auth_header("/people/2/addresses.json", "4bda6a28dbf930b5af9244073623bd04"); [201, {'Location' => '/people/1/addresses/5'}, '']}
 
-      mock.head   "/people/2.json",           { 'Authorization' => blank_digest_auth_header("/people/2.json", "15e5ed84ba5c4cfcd5c98a36c2e4f421") }, nil, 401, { 'WWW-Authenticate' => response_digest_auth_header }
-      mock.head   "/people/2.json",           { 'Authorization' => request_digest_auth_header("/people/2.json", "d4c6d2bcc8717abb2e2ccb8c49ee6a91") }, nil, 200
+      stub.head("/people/2.json") { |env| env[:request_headers]['Authorization'] = blank_digest_auth_header("/people/2.json", "15e5ed84ba5c4cfcd5c98a36c2e4f421"); [401, {'WWW-Authenticate'=>response_digest_auth_header}, '']}
+      stub.head("/people/2.json") { |env| env[:request_headers]['Authorization'] = request_digest_auth_header("/people/2.json", "d4c6d2bcc8717abb2e2ccb8c49ee6a91"); [200, {}, '']}
     end
   end
 

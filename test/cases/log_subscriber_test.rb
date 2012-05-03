@@ -11,8 +11,8 @@ class LogSubscriberTest < ActiveSupport::TestCase
     super
 
     @matz = { :person => { :id => 1, :name => 'Matz' } }.to_json
-    ActiveResource::HttpMock.respond_to do |mock|
-      mock.get "/people/1.json", {}, @matz
+    ActiveResource::Base.set_adapter(:test) do |stub|
+      stub.get("/people/1.json") {[200, {}, @matz]}
     end
 
     ActiveResource::LogSubscriber.attach_to :active_resource

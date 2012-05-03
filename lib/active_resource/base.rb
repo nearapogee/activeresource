@@ -547,7 +547,6 @@ module ActiveResource
           ActiveResource::Formats[mime_type_reference_or_format] : mime_type_reference_or_format
 
         self._format = format
-        connection.format = format if site
       end
 
       # Returns the current format, default is ActiveResource::Formats::JsonFormat.
