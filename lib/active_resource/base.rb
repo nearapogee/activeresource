@@ -615,7 +615,11 @@ module ActiveResource
               # The adapter needs to be set last. It would make sense to set
               # put the RaiseErrors right before.
               builder.use(ActiveResource::Response::RaiseError)
-              builder.adapter adapter, *adapter_args, &adapter_block
+              unless adapter == :test
+                builder.adapter adapter
+              else
+                builder.adapter adapter, ActiveResource::Stubs.stubs
+              end
             end
           end
           @connection
