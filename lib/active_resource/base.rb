@@ -588,7 +588,7 @@ module ActiveResource
       # or not (defaults to <tt>false</tt>).
       def connection(refresh = false)
         if defined?(@connection) || superclass == Object
-          if refresh || @connection.nil?
+          if refresh || @connection.nil? || adapter == :test
             @connection = Faraday.new(site) do |builder|
               # Fill in other options here on builder if possible or use a hash
               # in the args to Faraday.new
@@ -934,7 +934,7 @@ module ActiveResource
           prefix_options, query_options = split_options(options[:params])
           path = element_path(id, prefix_options, query_options)
           response = connection.head(path, headers)
-          response.code.to_i == 200
+          response.status.to_i == 200
         end
         # id && !find_single(id, options).nil?
       rescue ActiveResource::ResourceNotFound, ActiveResource::ResourceGone
@@ -1419,7 +1419,7 @@ module ActiveResource
       # Update the resource on the remote service.
       def update
         run_callbacks :update do
-          connection.put(element_path(prefix_options), encode, self.class.headers).tap do |response|
+          connection.put(element_path(prefix_options), encode).tap do |response|
             load_attributes_from_response(response)
           end
         end

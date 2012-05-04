@@ -764,14 +764,16 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal 25, rick.age
 
     # Test that save exceptions get bubbled up too
-    ActiveResource::Base.set_adapter(:test) do |stub|
+    ActiveResource::Stubs.add do |stub|
       stub.post("/people.json") {[409, {}, nil]}
     end
     assert_raise(ActiveResource::ResourceConflict) { Person.create(:name => 'Rick') }
   end
 
   def test_create_without_location
-    ActiveResource::Base.set_adapter(:test) do |stub|
+    ActiveResource::Stubs.clear
+    Person.connection(true)
+    ActiveResource::Stubs.add do |stub|
       stub.post("/people.json") {[201, {}, nil]}
     end
     person = Person.create(:name => 'Rick')
@@ -838,7 +840,7 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   def test_update_conflict
-    ActiveResource::Base.set_adapter(:test) do |stub|
+    ActiveResource::Stubs.add do |stub|
       stub.get("/people/2.json") {[200, {}, @david]}
       stub.put("/people/2.json") {[409, {}, nil]} # NOTE: original had headers @default_request_headers
     end
@@ -896,7 +898,7 @@ class BaseTest < ActiveSupport::TestCase
 
   def test_destroy
     assert Person.find(1).destroy
-    ActiveResource::Base.set_adapter(:test) do |stub|
+    ActiveResource::Stubs.add do |stub|
       stub.get("/people/1.json") {[404, {}, nil]}
     end
     assert_raise(ActiveResource::ResourceNotFound) { Person.find(1).destroy }
@@ -904,7 +906,7 @@ class BaseTest < ActiveSupport::TestCase
 
   def test_destroy_with_custom_prefix
     assert StreetAddress.find(1, :params => { :person_id => 1 }).destroy
-    ActiveResource::Base.set_adapter(:test) do |stub|
+    ActiveResource::Stubs.add do |stub|
       stub.get("/people/1/addresses/1.json") {[404, {}, nil]}
     end
     assert_raise(ActiveResource::ResourceNotFound) { StreetAddress.find(1, :params => { :person_id => 1 }) }
@@ -912,7 +914,7 @@ class BaseTest < ActiveSupport::TestCase
 
   def test_destroy_with_410_gone
     assert Person.find(1).destroy
-    ActiveResource::Base.set_adapter(:test) do |stub|
+    ActiveResource::Stubs.add do |stub|
       stub.get("/people/1.json") {[410, {}, nil]}
     end
     assert_raise(ActiveResource::ResourceGone) { Person.find(1).destroy }
@@ -920,7 +922,9 @@ class BaseTest < ActiveSupport::TestCase
 
   def test_delete
     assert Person.delete(1)
-    ActiveResource::Base.set_adapter(:test) do |stub|
+    ActiveResource::Stubs.clear
+    Person.connection true
+    ActiveResource::Stubs.add do |stub|
       stub.get("/people/1.json") {[404, {}, nil]}
     end
     assert_raise(ActiveResource::ResourceNotFound) { Person.find(1) }
@@ -928,7 +932,9 @@ class BaseTest < ActiveSupport::TestCase
 
   def test_delete_with_custom_prefix
     assert StreetAddress.delete(1, :person_id => 1)
-    ActiveResource::Base.set_adapter(:test) do |stub|
+    ActiveResource::Stubs.clear
+    StreetAddress.connection true
+    ActiveResource::Stubs.add do |stub|
       stub.get("/people/1/addresses/1.json") {[404, {}, nil]}
     end
     assert_raise(ActiveResource::ResourceNotFound) { StreetAddress.find(1, :params => { :person_id => 1 }) }
@@ -936,7 +942,9 @@ class BaseTest < ActiveSupport::TestCase
 
   def test_delete_with_410_gone
     assert Person.delete(1)
-    ActiveResource::Base.set_adapter(:test) do |stub|
+    ActiveResource::Stubs.clear
+    Person.connection true
+    ActiveResource::Stubs.add do |stub|
       stub.get("/people/1.json") {[410, {}, nil]}
     end
     assert_raise(ActiveResource::ResourceGone) { Person.find(1) }
@@ -1005,7 +1013,9 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   def test_exists_with_410_gone
-    ActiveResource::Base.set_adapter(:test) do |stub|
+    ActiveResource::Stubs.clear
+    Person.connection true
+    ActiveResource::Stubs.add do |stub|
       stub.head("/people/1.json") {[410, {}, nil]}
     end
 
@@ -1164,7 +1174,7 @@ class BaseTest < ActiveSupport::TestCase
   def test_with_custom_formatter
     addresses = [{ :id => "1", :street => "1 Infinite Loop", :city => "Cupertino", :state => "CA" }].to_xml(:root => :addresses)
 
-    ActiveResource::Base.set_adapter(:test) do |stub|
+    ActiveResource::Stubs.add do |stub|
       stub.get("/addresses.xml") {[200, {}, addresses]}
     end
 
@@ -1178,7 +1188,7 @@ class BaseTest < ActiveSupport::TestCase
   def test_create_with_custom_primary_key
     silver_plan = { :plan => { :code => "silver", :price => 5.00 } }.to_json
 
-    ActiveResource::Base.set_adapter(:test) do |stub|
+    ActiveResource::Stubs.add do |stub|
       stub.post("/plans.json") {[201, {}, silver_plan]}
     end
 
@@ -1193,9 +1203,9 @@ class BaseTest < ActiveSupport::TestCase
     silver_plan = { :plan => { :code => "silver", :price => 5.00 } }.to_json
     silver_plan_updated = { :plan => { :code => "silver", :price => 10.00 } }.to_json
 
-    ActiveResource::Base.set_adapter(:test) do |stub|
+    ActiveResource::Stubs.add do |stub|
       stub.get("/plans/silver.json") {[200, {}, silver_plan]}
-      stub.put("/plans/silver.json") {[201, {'Location' => '/plans/silver.json'}, silver_plan]}
+      stub.put("/plans/silver.json") {[201, {'Location' => '/plans/silver.json'}, silver_plan_updated]}
     end
 
     plan = SubscriptionPlan.find("silver")
