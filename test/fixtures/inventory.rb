@@ -2,6 +2,7 @@ class Inventory < ActiveResource::Base
   include ActiveResource::Singleton
   self.site = 'http://37s.sunrise.i:3000'
   self.prefix = '/products/:product_id/'
+  self.adapter = :test
 
   schema do
     integer :total

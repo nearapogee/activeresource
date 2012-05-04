@@ -9,7 +9,6 @@ class ValidationsTest < ActiveModel::TestCase
   VALID_PROJECT_HASH = { :name => "My Project", :description => "A project" }
   def setup
     @my_proj = { "person" => VALID_PROJECT_HASH }.to_json
-    ActiveResource::Base.set_adapter :test
     ActiveResource::Stubs.add do |stub|
       stub.post("/projects.json") { [201, {'Location' => '/projects/5.json'}, @my_proj] }
     end

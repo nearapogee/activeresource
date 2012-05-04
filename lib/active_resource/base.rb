@@ -417,24 +417,12 @@ module ActiveResource
       #
       # TODO finish docs.
       #
-      # TODO there is a better way to do this....
-      #
-      def set_adapter(adapter, *args, &block)
-        @@adapter = adapter
-        @@adapter_args = args
-        @@adapter_block = block
+      def adapter=(adapter)
+        @adapter = adapter
       end
 
       def adapter
-        @@adapter ||= :net_http
-      end
-
-      def adapter_args
-        @@adapter_args ||= nil
-      end
-
-      def adapter_block
-        @@adapter_block ||= nil
+        @adapter ||= :net_http
       end
 
       # Gets the URI of the REST resources to map for this class. The site variable is required for

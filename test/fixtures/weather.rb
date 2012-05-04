@@ -1,6 +1,7 @@
 class Weather < ActiveResource::Base
   include ActiveResource::Singleton
   self.site = 'http://37s.sunrise.i:3000'
+  self.adapter = :test
 
   schema do
     string  :status
