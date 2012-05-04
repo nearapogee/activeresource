@@ -12,25 +12,25 @@ class CustomMethodsTest < ActiveSupport::TestCase
     @addy  = { :address => { :id => 1, :street => '12345 Street' } }.to_json
     @addy_deep  = { :address => { :id => 1, :street => '12345 Street', :zip => "27519" } }.to_json
 
-    ActiveResource::HttpMock.respond_to do |mock|
-      mock.get    "/people/1.json",        {}, @matz
-      mock.get    "/people/1/shallow.json", {}, @matz
-      mock.get    "/people/1/deep.json", {}, @matz_deep
-      mock.get    "/people/retrieve.json?name=Matz", {}, @matz_array
-      mock.get    "/people/managers.json", {}, @matz_array
-      mock.post   "/people/hire.json?name=Matz", {}, nil, 201
-      mock.put    "/people/1/promote.json?position=Manager", {}, nil, 204
-      mock.put    "/people/promote.json?name=Matz", {}, nil, 204, {}
-      mock.put    "/people/sort.json?by=name", {}, nil, 204
-      mock.delete "/people/deactivate.json?name=Matz", {}, nil, 200
-      mock.delete "/people/1/deactivate.json", {}, nil, 200
-      mock.post   "/people/new/register.json",      {}, @ryan, 201, 'Location' => '/people/5.json'
-      mock.post   "/people/1/register.json", {}, @matz, 201
-      mock.get    "/people/1/addresses/1.json", {}, @addy
-      mock.get    "/people/1/addresses/1/deep.json", {}, @addy_deep
-      mock.put    "/people/1/addresses/1/normalize_phone.json?locale=US", {}, nil, 204
-      mock.put    "/people/1/addresses/sort.json?by=name", {}, nil, 204
-      mock.post   "/people/1/addresses/new/link.json", {}, { :address => { :street => '12345 Street' } }.to_json, 201, 'Location' => '/people/1/addresses/2.json'
+    ActiveResource::Base.set_adapter(:test) do |stub|
+      stub.get("/people/1.json")                                        {[200, {}, @matz]}
+      stub.get("/people/1/shallow.json")                                {[200, {}, @matz]}
+      stub.get("/people/1/deep.json")                                   {[200, {}, @matz_deep]}
+      stub.get("/people/retrieve.json?name=Matz")                       {[200, {}, @matz_array]}
+      stub.get("/people/managers.json")                                 {[200, {}, @matz_array]}
+      stub.post("/people/hire.json?name=Matz")                          {[201, {}, '']}
+      stub.put("/people/1/promote.json?position=Manager")               {[204, {}, '']}
+      stub.put("/people/promote.json?name=Matz")                        {[204, {}, '']}
+      stub.put("/people/sort.json?by=name")                             {[204, {}, '']}
+      stub.delete("/people/deactivate.json?name=Matz")                  {[200, {}, '']}
+      stub.delete("/people/1/deactivate.json")                          {[200, {}, '']}
+      stub.post("/people/new/register.json")                            {[201, {'Location' => '/people/5.json'}, @ryan]}
+      stub.post("/people/1/register.json")                              {[201, {}, @matz]}
+      stub.get("/people/1/addresses/1.json")                            {[200, {}, @addy]}
+      stub.get("/people/1/addresses/1/deep.json")                       {[200, {}, @addy_deep]}
+      stub.put("/people/1/addresses/1/normalize_phone.json?locale=US")  {[204, {}, '']}
+      stub.put("/people/1/addresses/sort.json?by=name")                 {[204, {}, '']}
+      stub.post("/people/1/addresses/new/link.json")                    {[201, {'Location' => '/people/1/addresses/2.json'}, { :address => { :street => '12345 Street' } }.to_json]} 
     end
 
     Person.user = nil

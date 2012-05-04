@@ -47,11 +47,11 @@ class CallbacksTest < ActiveModel::TestCase
   def setup
     @developer_attrs = {:id => 1, :name => "Guillermo", :salary => 100_000}
     @developer = {"developer" => @developer_attrs}.to_json
-    ActiveResource::HttpMock.respond_to do |mock|
-      mock.post   '/developers.json',   {}, @developer, 201, 'Location' => '/developers/1.json'
-      mock.get    '/developers/1.json', {}, @developer
-      mock.put    '/developers/1.json', {}, nil, 204
-      mock.delete '/developers/1.json', {}, nil, 200
+    ActiveResource::Base.set_adapter(:test) do |stub|
+      stub.post('/developers.json') {[201, {'Location'=>'/developers/1.json'}, @developer]}
+      stub.get('/developers/1.json') {[200, {}, @developer]}
+      stub.put('/developers/1.json') {[204, {}, '']}
+      stub.delete('/developers/1.json') {[200, {}, '']}
     end
   end
 
