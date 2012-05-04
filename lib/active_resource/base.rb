@@ -602,8 +602,6 @@ module ActiveResource
         if defined?(@connection) || superclass == Object
           if refresh || @connection.nil?
             @connection = Faraday.new(site) do |builder|
-              builder.adapter adapter, *adapter_args, &adapter_block
-              builder.use(ActiveResource::Response::RaiseError)
               # Fill in other options here on builder if possible or use a hash
               # in the args to Faraday.new
               #
@@ -613,6 +611,8 @@ module ActiveResource
               # @connection.auth_type = auth_type if auth_type
               # @connection.timeout = timeout if timeout
               # @connection.ssl_options = ssl_options if ssl_options
+              builder.use(ActiveResource::Response::RaiseError)
+              builder.adapter adapter, *adapter_args, &adapter_block
             end
           end
           @connection
