@@ -100,16 +100,12 @@ class FinderTest < ActiveSupport::TestCase
   end
 
   def test_find_all_by_from
-    ActiveResource::HttpMock.respond_to { |m| m.get "/companies/1/people.json", {}, @people_david }
-
     people = Person.find(:all, :from => "/companies/1/people.json")
     assert_equal 1, people.size
     assert_equal "David", people.first.name
   end
 
   def test_find_all_by_from_with_options
-    Person.set_adapter(:test) { |stub| stub.get('/companies/1/people.json') { [200, {}, @people_david]} }
-
     people = Person.find(:all, :from => "/companies/1/people.json")
     assert_equal 1, people.size
     assert_equal "David", people.first.name

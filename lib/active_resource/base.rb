@@ -11,6 +11,7 @@ require 'active_support/core_ext/object/duplicable'
 require 'set'
 require 'uri'
 require 'faraday'
+require 'active_resource/middleware/raise_error'
 
 require 'active_support/core_ext/uri'
 require 'active_resource/exceptions'
@@ -602,6 +603,7 @@ module ActiveResource
           if refresh || @connection.nil?
             @connection = Faraday.new(site) do |builder|
               builder.adapter adapter, *adapter_args, &adapter_block
+              builder.use(ActiveResource::Response::RaiseError)
               # Fill in other options here on builder if possible or use a hash
               # in the args to Faraday.new
               #

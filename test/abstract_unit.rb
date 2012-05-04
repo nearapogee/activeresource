@@ -140,17 +140,18 @@ def setup_response
     stub.head("/people/1/addresses/2.json")   {[404, {}, nil]}
     stub.head("/people/2/addresses/1.json")   {[404, {}, nil]}
     stub.head("/people/Greg/addresses/1.json"){[200, {}, nil]}
+    stub.get('/companies/1/people.json')      {[200, {}, @people_david]}
     # customer
-    mock.get("/customers/1.json")             {[200, {}, @luis]}
+    stub.get("/customers/1.json")             {[200, {}, @luis]}
     # sound
-    mock.get("/sounds/1.json")                {[200, {}, @startup_sound]}
+    stub.get("/sounds/1.json")                {[200, {}, @startup_sound]}
     # post
-    mock.get("/posts.json")                   {[200, {}, @posts]}
-    mock.get("/posts/1.json")                 {[200, {}, @post]}
-    mock.get("/posts/1/comments.json")        {[200, {}, @comments]}
+    stub.get("/posts.json")                   {[200, {}, @posts]}
+    stub.get("/posts/1.json")                 {[200, {}, @post]}
+    stub.get("/posts/1/comments.json")        {[200, {}, @comments]}
     # products
-    mock.get('/products/1.json')              {[200, {}, @product]}
-    mock.get('/products/1/inventory.json')    {[200, {}, @inventory]}
+    stub.get('/products/1.json')              {[200, {}, @product]}
+    stub.get('/products/1/inventory.json')    {[200, {}, @inventory]}
   end
 
 
