@@ -6,17 +6,17 @@ class SingletonTest < ActiveSupport::TestCase
   def setup_weather
     weather  = { :status => 'Sunny', :temperature => 67 }
     Weather.set_adapter(:test) do |stub|
-      stub.get    ('/weather.json')                     {[200, {}, weather.to_json]}
-      stub.get    ('/weather.json?degrees=fahrenheit')  {[200, {}, weather.merge(:temperature => 100).to_json]}
-      stub.post   ('/weather.json')                     {[201, {'Location' => '/weather.json'}, weather.to_json]}
-      stub.delete ('/weather.json')                     {[200, {}, nil]}
-      stub.put    ('/weather.json')                     {[204, {}, nil]}
+      stub.get('/weather.json?degrees=fahrenheit')  {[200, {}, weather.merge(:temperature => 100).to_json]}
+      stub.get('/weather.json')                     {[200, {}, weather.to_json]}
+      stub.post('/weather.json')                    {[201, {'Location' => '/weather.json'}, weather.to_json]}
+      stub.delete('/weather.json')                  {[200, {}, '']}
+      stub.put('/weather.json')                     {[204, {}, '']}
     end
   end
 
   def setup_weather_not_found
     Weather.set_adapter(:test) do |stub|
-      stub.get    ('/weather.json')                     {[404, {}, nil]}
+      stub.get('/weather.json')                     {[404, {}, '']}
     end
   end
 

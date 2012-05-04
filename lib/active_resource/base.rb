@@ -611,6 +611,9 @@ module ActiveResource
               # @connection.auth_type = auth_type if auth_type
               # @connection.timeout = timeout if timeout
               # @connection.ssl_options = ssl_options if ssl_options
+
+              # The adapter needs to be set last. It would make sense to set
+              # put the RaiseErrors right before.
               builder.use(ActiveResource::Response::RaiseError)
               builder.adapter adapter, *adapter_args, &adapter_block
             end
