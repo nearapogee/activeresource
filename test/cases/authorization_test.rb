@@ -22,7 +22,7 @@ class BasicAuthorizationTest < AuthorizationTest
     super
     @authenticated_conn.auth_type = :basic
 
-    ActiveResource::Base.set_adapter(:test) do |stub|
+    ActiveResource::Stubs.add do |stub|
       stub.get("/people/2.json")              {|env| env[:request_headers] = @basic_authorization_request_header; [200, {}, @david]}
       stub.get("/people/1.json")              {|env| env[:request_headers] = @basic_authorization_request_header; [401, {'WWW-Authenticate' => 'i_should_be_ignored'}, '']}
       stub.put("/people/2.json")              {|env| env[:request_headers] = @basic_authorization_request_header; [204, {}, '']}
@@ -163,7 +163,7 @@ class DigestAuthorizationTest < AuthorizationTest
 
     @nonce = "MTI0OTUxMzc4NzpjYWI3NDM3NDNmY2JmODU4ZjQ2ZjcwNGZkMTJiMjE0NA=="
 
-    ActiveResource::Base.set_adapter(:test) do |stub|
+    ActiveResource::Stubs.add do |stub|
       stub.get("/people/2.json") { |env| env[:request_headers]['Authorization'] = blank_digest_auth_header("/people/2.json", "fad396f6a34aeba28e28b9b96ddbb671"); [401, {'WWW-Authenticate' => response_digest_auth_header}, '']}
       stub.get("/people/2.json") { |env| env[:request_headers]['Authorization'] = request_digest_auth_header("/people/2.json", "c064d5ba8891a25290c76c8c7d31fb7b"); [200, {}, @david]}
       stub.get("/people/1.json") { |env| env[:request_headers]['Authorization'] = request_digest_auth_header("/people/1.json", "f9c0b594257bb8422af4abd429c5bb70"); [200, {}, @matz]}
