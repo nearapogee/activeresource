@@ -11,7 +11,7 @@ class LogSubscriberTest < ActiveSupport::TestCase
     super
 
     @matz = { :person => { :id => 1, :name => 'Matz' } }.to_json
-    ActiveResource::Base.set_adapter(:test) do |stub|
+    ActiveResource::Stubs.add do |stub|
       stub.get("/people/1.json") {[200, {}, @matz]}
     end
 
