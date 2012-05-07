@@ -44,17 +44,17 @@ class BasicAuthorizationTest < AuthorizationTest
 
   def test_put
     response = @authenticated_conn.put("/people/2.json")
-    assert_equal 204, response.code
+    assert_equal 204, response.status
   end
 
   def test_delete
     response = @authenticated_conn.delete("/people/2.json")
-    assert_equal 200, response.code
+    assert_equal 200, response.status
   end
 
   def test_head
     response = @authenticated_conn.head("/people/2.json")
-    assert_equal 200, response.code
+    assert_equal 200, response.status
   end
 
   def test_retry_on_401_doesnt_happen_with_basic_auth
@@ -200,22 +200,22 @@ class DigestAuthorizationTest < AuthorizationTest
   def test_post_with_digest_auth_handles_initial_401_response_and_retries
     response = @authenticated_conn.post("/people/2/addresses.json")
     assert_equal "/people/1/addresses/5", response["Location"]
-    assert_equal 201, response.code
+    assert_equal 201, response.status
   end
 
   def test_put_with_digest_auth_handles_initial_401_response_and_retries
     response = @authenticated_conn.put("/people/2.json")
-    assert_equal 204, response.code
+    assert_equal 204, response.status
   end
 
   def test_delete_with_digest_auth_handles_initial_401_response_and_retries
     response = @authenticated_conn.delete("/people/2.json")
-    assert_equal 200, response.code
+    assert_equal 200, response.status
   end
 
   def test_head_with_digest_auth_handles_initial_401_response_and_retries
     response = @authenticated_conn.head("/people/2.json")
-    assert_equal 200, response.code
+    assert_equal 200, response.status
   end
 
   def test_get_with_digest_auth_caches_nonce

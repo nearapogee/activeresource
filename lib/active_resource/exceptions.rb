@@ -9,7 +9,7 @@ module ActiveResource
 
     def to_s
       message = "Failed."
-      message << "  Response code = #{response.code}." if response.respond_to?(:code)
+      message << "  Response code = #{response.status}." if response.respond_to?(:code)
       message << "  Response message = #{response.message}." if response.respond_to?(:message)
       message
     end

@@ -134,9 +134,9 @@ module ActiveResource
     def load_remote_errors(remote_errors, save_cache = false ) #:nodoc:
       case self.class.format
       when ActiveResource::Formats[:xml]
-        errors.from_xml(remote_errors.response.body, save_cache)
+        errors.from_xml(remote_errors.response[:body], save_cache)
       when ActiveResource::Formats[:json]
-        errors.from_json(remote_errors.response.body, save_cache)
+        errors.from_json(remote_errors.response[:body], save_cache)
       end
     end
 

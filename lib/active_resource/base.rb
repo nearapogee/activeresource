@@ -11,6 +11,7 @@ require 'active_support/core_ext/object/duplicable'
 require 'set'
 require 'uri'
 require 'faraday'
+require 'active_resource/faraday_extension'
 require 'active_resource/middleware/raise_error'
 
 require 'active_support/core_ext/uri'
@@ -942,7 +943,7 @@ module ActiveResource
           prefix_options, query_options = split_options(options[:params])
           path = element_path(id, prefix_options, query_options)
           response = connection.head(path, headers)
-          response.code.to_i == 200
+          response.status.to_i == 200
         end
         # id && !find_single(id, options).nil?
       rescue ActiveResource::ResourceNotFound, ActiveResource::ResourceGone
@@ -1454,7 +1455,7 @@ module ActiveResource
 
       # Takes a response from a typical create post and pulls the ID out
       def id_from_response(response)
-        response.headers['Location'][/\/([^\/]*?)(\.\w+)?$/, 1] if response.headers['Location']
+        response['Location'][/\/([^\/]*?)(\.\w+)?$/, 1] if response['Location']
       end
 
       def element_path(options = nil)

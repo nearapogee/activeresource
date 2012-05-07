@@ -25,6 +25,13 @@ namespace :test do
   end
 end
 
+namespace :test do
+  task :single do
+    puts "ruby -w -Ilib:test test/cases/#{ENV['FILE']}"
+    system "ruby -w -Ilib:test test/cases/#{ENV['FILE']}"
+  end
+end
+
 spec = eval(File.read('activeresource.gemspec'))
 
 Gem::PackageTask.new(spec) do |p|

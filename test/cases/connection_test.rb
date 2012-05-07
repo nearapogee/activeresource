@@ -140,7 +140,7 @@ class ConnectionTest < ActiveSupport::TestCase
 #  def test_head
 #    response = @conn.head("/people/1.json")
 #    assert response.body.blank?
-#    assert_equal 200, response.code
+#    assert_equal 200, response.status
 #  end
 #
 #  def test_get_with_header
@@ -176,22 +176,22 @@ class ConnectionTest < ActiveSupport::TestCase
 #
 #  def test_put
 #    response = @conn.put("/people/1.json")
-#    assert_equal 204, response.code
+#    assert_equal 204, response.status
 #  end
 #
 #  def test_put_with_header
 #    response = @conn.put("/people/2.json", @header)
-#    assert_equal 204, response.code
+#    assert_equal 204, response.status
 #  end
 #
 #  def test_delete
 #    response = @conn.delete("/people/1.json")
-#    assert_equal 200, response.code
+#    assert_equal 200, response.status
 #  end
 #
 #  def test_delete_with_header
 #    response = @conn.delete("/people/2.json", @header)
-#    assert_equal 200, response.code
+#    assert_equal 200, response.status
 #  end
 #
 #  def test_timeout

@@ -24,7 +24,7 @@ class SingletonTest < ActiveSupport::TestCase
     inventory = {:status => 'Sold Out', :total => 10, :used => 10}.to_json
 
     Inventory.set_adapter(:test) do |stub|
-      stub.get ('/products/5/inventory.json') { [200, {}, inventory] }
+      stub.get('/products/5/inventory.json') { [200, {}, inventory] }
     end
   end
 
