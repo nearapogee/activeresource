@@ -2,14 +2,15 @@ module ActiveResource
   class ConnectionError < StandardError # :nodoc:
     attr_reader :response
 
-    def initialize(response, message = nil)
-      @response = response
+    def initialize(env, message = nil)
+      @response = env[:response]
       @message  = message
     end
 
     def to_s
       message = "Failed."
-      message << "  Response code = #{response.status}." if response.respond_to?(:code)
+      message << "  Response code = #{response.status}." if response.respond_to?(:status)
+      # TODO net/http has a message for every status code. Do we want to implement this?
       message << "  Response message = #{response.message}." if response.respond_to?(:message)
       message
     end
@@ -34,7 +35,7 @@ module ActiveResource
   # 3xx Redirection
   class Redirection < ConnectionError # :nodoc:
     def to_s
-      response['Location'] ? "#{super} => #{response['Location']}" : super
+      response.headers['Location'] ? "#{super} => #{response.headers['Location']}" : super
     end
   end
 
@@ -76,7 +77,7 @@ module ActiveResource
   # 405 Method Not Allowed
   class MethodNotAllowed < ClientError # :nodoc:
     def allowed_methods
-      @response['Allow'].split(',').map { |verb| verb.strip.downcase.to_sym }
+      @response.headers['Allow'].split(',').map { |verb| verb.strip.downcase.to_sym }
     end
   end
 end
