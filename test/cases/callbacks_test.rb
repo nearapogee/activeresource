@@ -3,6 +3,7 @@ require 'active_support/core_ext/hash/conversions'
 
 class Developer < ActiveResource::Base
   self.site = 'http://37s.sunrise.i:3000'
+  self.adapter = :test
 
   class << self
     def callback_string(callback_method)
@@ -47,7 +48,7 @@ class CallbacksTest < ActiveModel::TestCase
   def setup
     @developer_attrs = {:id => 1, :name => "Guillermo", :salary => 100_000}
     @developer = {"developer" => @developer_attrs}.to_json
-    ActiveResource::Base.set_adapter(:test) do |stub|
+    ActiveResource::Stubs.add do |stub|
       stub.post('/developers.json') {[201, {'Location'=>'/developers/1.json'}, @developer]}
       stub.get('/developers/1.json') {[200, {}, @developer]}
       stub.put('/developers/1.json') {[204, {}, '']}

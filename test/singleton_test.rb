@@ -5,7 +5,7 @@ require 'fixtures/inventory'
 class SingletonTest < ActiveSupport::TestCase
   def setup_weather
     weather  = { :status => 'Sunny', :temperature => 67 }
-    Weather.set_adapter(:test) do |stub|
+    ActiveResource::Stubs.add do |stub|
       stub.get('/weather.json?degrees=fahrenheit')  {[200, {}, weather.merge(:temperature => 100).to_json]}
       stub.get('/weather.json')                     {[200, {}, weather.to_json]}
       stub.post('/weather.json')                    {[201, {'Location' => '/weather.json'}, weather.to_json]}
@@ -15,7 +15,7 @@ class SingletonTest < ActiveSupport::TestCase
   end
 
   def setup_weather_not_found
-    Weather.set_adapter(:test) do |stub|
+    ActiveResource::Stubs.add do |stub|
       stub.get('/weather.json')                     {[404, {}, '']}
     end
   end
@@ -23,8 +23,8 @@ class SingletonTest < ActiveSupport::TestCase
   def setup_inventory
     inventory = {:status => 'Sold Out', :total => 10, :used => 10}.to_json
 
-    Inventory.set_adapter(:test) do |stub|
-      stub.get('/products/5/inventory.json') { [200, {}, inventory] }
+    ActiveResource::Stubs.add do |stub|
+      stub.get ('/products/5/inventory.json') { [200, {}, inventory] }
     end
   end
 
@@ -95,6 +95,8 @@ class SingletonTest < ActiveSupport::TestCase
   end
 
   def test_not_found
+    ActiveResource::Stubs.clear
+    Weather.connection(true)
     setup_weather_not_found
 
     assert_raise ActiveResource::ResourceNotFound do

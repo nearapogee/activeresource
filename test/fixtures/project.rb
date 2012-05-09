@@ -1,6 +1,7 @@
 # used to test validations
 class Project < ActiveResource::Base
   self.site = "http://37s.sunrise.i:3000"
+  self.adapter = :test
   schema do
     string  :email
     string  :name

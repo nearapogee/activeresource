@@ -12,7 +12,7 @@ class CustomMethodsTest < ActiveSupport::TestCase
     @addy  = { :address => { :id => 1, :street => '12345 Street' } }.to_json
     @addy_deep  = { :address => { :id => 1, :street => '12345 Street', :zip => "27519" } }.to_json
 
-    ActiveResource::Base.set_adapter(:test) do |stub|
+    ActiveResource::Stubs.add do |stub|
       stub.get("/people/1.json")                                        {[200, {}, @matz]}
       stub.get("/people/1/shallow.json")                                {[200, {}, @matz]}
       stub.get("/people/1/deep.json")                                   {[200, {}, @matz_deep]}

@@ -418,24 +418,12 @@ module ActiveResource
       #
       # TODO finish docs.
       #
-      # TODO there is a better way to do this....
-      #
-      def set_adapter(adapter, *args, &block)
-        @@adapter = adapter
-        @@adapter_args = args
-        @@adapter_block = block
+      def adapter=(adapter)
+        @adapter = adapter
       end
 
       def adapter
-        @@adapter ||= :net_http
-      end
-
-      def adapter_args
-        @@adapter_args ||= nil
-      end
-
-      def adapter_block
-        @@adapter_block ||= nil
+        @adapter ||= :net_http
       end
 
       # Gets the URI of the REST resources to map for this class. The site variable is required for
@@ -601,7 +589,7 @@ module ActiveResource
       # or not (defaults to <tt>false</tt>).
       def connection(refresh = false)
         if defined?(@connection) || superclass == Object
-          if refresh || @connection.nil?
+          if refresh || @connection.nil? || adapter == :test
             @connection = Faraday.new(site) do |builder|
               # Fill in other options here on builder if possible or use a hash
               # in the args to Faraday.new
@@ -613,10 +601,19 @@ module ActiveResource
               # @connection.timeout = timeout if timeout
               # @connection.ssl_options = ssl_options if ssl_options
 
+              # The raised errors need access to the response and
+              # middleware does not have access to the response object
+              # yet.
+              #
+              # builder.use(ActiveResource::Response::RaiseError)
+
               # The adapter needs to be set last. It would make sense to set
               # put the RaiseErrors right before.
-              builder.use(ActiveResource::Response::RaiseError)
-              builder.adapter adapter, *adapter_args, &adapter_block
+              unless adapter == :test
+                builder.adapter adapter
+              else
+                builder.adapter adapter, ActiveResource::Stubs.stubs
+              end
             end
           end
           @connection
@@ -1428,7 +1425,7 @@ module ActiveResource
       # Update the resource on the remote service.
       def update
         run_callbacks :update do
-          connection.put(element_path(prefix_options), encode, self.class.headers).tap do |response|
+          handle_response(connection.put(element_path(prefix_options), encode)).tap do |response|
             load_attributes_from_response(response)
           end
         end
@@ -1437,7 +1434,7 @@ module ActiveResource
       # Create (i.e., \save to the remote service) the \new resource.
       def create
         run_callbacks :create do
-          connection.post(collection_path).tap do |response|
+         handle_response(connection.post(collection_path)).tap do |response|
             self.id = id_from_response(response)
             load_attributes_from_response(response)
           end
@@ -1468,6 +1465,38 @@ module ActiveResource
 
       def collection_path(options = nil)
         self.class.collection_path(options || prefix_options)
+      end
+
+      # Handles response and error codes from the remote service.
+      def handle_response(response)
+        case response.status.to_i
+          when 301, 302, 303, 307
+            raise(Redirection.new(response))
+          when 200...400
+            response
+          when 400
+            raise(BadRequest.new(response))
+          when 401
+            raise(UnauthorizedAccess.new(response))
+          when 403
+            raise(ForbiddenAccess.new(response))
+          when 404
+            raise(ResourceNotFound.new(response))
+          when 405
+            raise(MethodNotAllowed.new(response))
+          when 409
+            raise(ResourceConflict.new(response))
+          when 410
+            raise(ResourceGone.new(response))
+          when 422
+            raise(ResourceInvalid.new(response))
+          when 401...500
+            raise(ClientError.new(response))
+          when 500...600
+            raise(ServerError.new(response))
+          else
+            raise(ConnectionError.new(response, "Unknown response code: #{response.code}"))
+        end
       end
 
     private

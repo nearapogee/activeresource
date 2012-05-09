@@ -22,7 +22,7 @@ class ObservingTest < ActiveSupport::TestCase
   def setup
     @matz = { 'person' => { :id => 1, :name => 'Matz' } }.to_json
 
-    ActiveResource::Base.set_adapter(:test) do |stub|
+    ActiveResource::Stubs.add do |stub|
       stub.get("/people/1.json") {[200, {}, @matz]}
       stub.post("/people.json") {[201, {'Location' => '/people/1.json'}, @matz]}
       stub.put("/people/1.json") {[204, {}, nil]}

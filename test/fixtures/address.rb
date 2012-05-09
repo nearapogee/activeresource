@@ -16,4 +16,5 @@ end
 class AddressResource < ActiveResource::Base
   self.element_name = "address"
   self.format = AddressXMLFormatter.new
+  self.adapter = :test
 end

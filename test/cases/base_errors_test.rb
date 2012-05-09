@@ -5,7 +5,7 @@ class BaseErrorsTest < ActiveSupport::TestCase
   def setup
     xml_body = %q(<?xml version="1.0" encoding="UTF-8"?><errors><error>Age can't be blank</error><error>Name can't be blank</error><error>Name must start with a letter</error><error>Person quota full for today.</error></errors>)
     json_body = %q({"errors":{"age":["can't be blank"],"name":["can't be blank", "must start with a letter"],"person":["quota full for today."]}})
-    ActiveResource::Base.set_adapter(:test) do |stub|
+    ActiveResource::Stubs.add do |stub|
       stub.post("/people.xml") {[422, {'Content-Type' => 'application/xml; charset=utf-8'}, xml_body]}
       stub.post("/people.json") {[422, {'Content-Type' => 'application/json; charset=utf-8'}, json_body]} 
     end
@@ -29,7 +29,7 @@ class BaseErrorsTest < ActiveSupport::TestCase
   end
 
   def test_should_parse_json_errors_when_no_errors_key
-    ActiveResource::Base.set_adapter(:test) do |stub|
+    ActiveResource::Stubs.add do |stub|
       stub.post("/people.json") {[422, {'Content-Type' => 'application/json; charset=utf-8'}, '{}']}
     end
 
@@ -85,7 +85,7 @@ class BaseErrorsTest < ActiveSupport::TestCase
   def test_should_mark_as_invalid_when_content_type_is_unavailable_in_response_header
     xml_body = %q(<?xml version="1.0" encoding="UTF-8"?><errors><error>Age can't be blank</error><error>Name can't be blank</error><error>Name must start with a letter</error><error>Person quota full for today.</error></errors>)
     json_body = %q({"errors":{"age":["can't be blank"],"name":["can't be blank", "must start with a letter"],"person":["quota full for today."]}})
-    ActiveResource::Base.set_adapter(:test) do |stub|
+    ActiveResource::Stubs.add do |stub|
       stub.post("/people.xml") {[ 422, {}, xml_body]}
       stub.post("/people.json") {[ 422, {}, json_body]}
     end
@@ -99,7 +99,7 @@ class BaseErrorsTest < ActiveSupport::TestCase
 
   def test_should_parse_json_string_errors_with_an_errors_key
     json_body = %q({"errors":["Age can't be blank", "Name can't be blank", "Name must start with a letter", "Person quota full for today."]})
-    ActiveResource::Base.set_adapter(:test) do |stub|
+    ActiveResource::Stubs.add do |stub|
       stub.post("/people.json") {[422, {'Content-Type' => 'application/json; charset=utf-8'}, json_body]}
     end
 
@@ -115,7 +115,7 @@ class BaseErrorsTest < ActiveSupport::TestCase
 
   def test_should_parse_3_1_style_json_errors
     json_body = %q({"age":["can't be blank"],"name":["can't be blank", "must start with a letter"],"person":["quota full for today."]})
-    ActiveResource::Base.set_adapter(:test) do |stub|
+    ActiveResource::Stubs.add do |stub|
       stub.post("/people.json") {[422, {'Content-Type' => 'application/json; charset=utf-8'}, json_body]}
     end
 
