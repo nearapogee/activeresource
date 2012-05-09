@@ -1201,7 +1201,7 @@ class BaseTest < ActiveSupport::TestCase
 
   def test_update_with_custom_primary_key
     silver_plan = { :plan => { :code => "silver", :price => 5.00 } }.to_json
-    # silver_plan_updated = { :plan => { :code => "silver", :price => 10.00 } }.to_json
+    silver_plan_updated = { :plan => { :code => "silver", :price => 10.00 } }.to_json
 
     ActiveResource::Stubs.add do |stub|
       stub.get("/plans/silver.json") {[200, {}, silver_plan]}
