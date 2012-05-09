@@ -2,7 +2,7 @@ module ActiveResource
   class ConnectionError < StandardError # :nodoc:
     attr_reader :response
 
-    def initialize(env, message = nil)
+    def initialize(env = {}, message = nil)
       @response = env[:response]
       @message  = message
     end

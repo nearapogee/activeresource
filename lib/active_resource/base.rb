@@ -1241,7 +1241,7 @@ module ActiveResource
     # of the <tt>before_*</tt> callbacks return +false+ the action is
     # cancelled and <tt>save!</tt> raises ActiveResource::ResourceInvalid.
     def save!
-      save || raise(ResourceInvalid.new(self))
+      save || raise(ResourceInvalid.new)
     end
 
     # Deletes the resource from the remote service.
