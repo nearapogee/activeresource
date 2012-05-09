@@ -38,7 +38,7 @@ class CustomMethodsTest < ActiveSupport::TestCase
   end
 
   def teardown
-    ActiveResource::HttpMock.reset!
+    # ActiveResource::HttpMock.reset!
   end
 
   def test_custom_collection_method

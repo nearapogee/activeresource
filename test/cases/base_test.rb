@@ -8,6 +8,8 @@ require "fixtures/proxy"
 require "fixtures/address"
 require "fixtures/subscription_plan"
 require "fixtures/post"
+require 'fixtures/product'
+require 'fixtures/inventory'
 require "fixtures/comment"
 require 'active_support/json'
 require 'active_support/core_ext/hash/conversions'
