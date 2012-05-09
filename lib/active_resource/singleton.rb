@@ -70,7 +70,7 @@ module ActiveResource
         prefix_options, query_options = split_options(options[:params]) 
 
         path = singleton_path(prefix_options, query_options)
-        resp = self.format.decode(self.connection.get(path, self.headers).body)
+        resp = self.connection.get(path, self.headers).body
         instantiate_record(resp, {})
       end
 

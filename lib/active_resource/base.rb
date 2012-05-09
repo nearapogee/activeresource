@@ -13,6 +13,8 @@ require 'uri'
 require 'faraday'
 require 'active_resource/faraday_extension'
 require 'active_resource/middleware/raise_error'
+require 'active_resource/middleware/parse_json'
+require 'active_resource/middleware/parse_xml'
 
 require 'active_support/core_ext/uri'
 require 'active_resource/exceptions'
@@ -584,6 +586,17 @@ module ActiveResource
         end
       end
 
+      # exposes the current connection bulider
+      # middleware.swap(Faraday::Adapter::NetHttp, Faraday::Adapter::NetHttpPersistent)
+      # this may not stick around, it presents two ways of changing the adapter and format
+      def middleware
+        if connection.builder.locked?
+          connection(true).builder
+        else
+          connection.builder
+        end
+      end
+
       # An instance of ActiveResource::Connection that is the base \connection to the remote service.
       # The +refresh+ parameter toggles whether or not the \connection is refreshed at every request
       # or not (defaults to <tt>false</tt>).
@@ -600,6 +613,9 @@ module ActiveResource
               # @connection.auth_type = auth_type if auth_type
               # @connection.timeout = timeout if timeout
               # @connection.ssl_options = ssl_options if ssl_options
+
+              builder.use(ActiveResource::Middleware::ParseJSON) if format == ActiveResource::Formats::JsonFormat
+              builder.use(ActiveResource::Middleware::ParseXML) if format == ActiveResource::Formats::XmlFormat
 
               # The raised errors need access to the response and
               # middleware does not have access to the response object
@@ -784,7 +800,7 @@ module ActiveResource
       # Returns the new resource instance.
       #
       def build(attributes = {})
-        attrs = self.format.decode(connection.get("#{new_element_path}").body).merge(attributes)
+        attrs = connection.get("#{new_element_path}").body.merge(attributes)
         self.new(attrs)
       end
 
@@ -961,14 +977,15 @@ module ActiveResource
           begin
             case from = options[:from]
             when Symbol
+              # TODO: this calls CustomMethods#get, should(?) be Faraday get
               instantiate_collection(get(from, options[:params]))
             when String
               path = "#{from}#{query_string(options[:params])}"
-              instantiate_collection(format.decode(connection.get(path, headers).body) || [])
+              instantiate_collection( (connection.get(path, nil, headers).body || []))
             else
               prefix_options, query_options = split_options(options[:params])
               path = collection_path(prefix_options, query_options)
-              instantiate_collection( (format.decode(connection.get(path, headers).body) || []), prefix_options )
+              instantiate_collection( (connection.get(path, nil, headers).body || []), prefix_options )
             end
           rescue ActiveResource::ResourceNotFound
             # Swallowing ResourceNotFound exceptions and return nil - as per
@@ -981,10 +998,11 @@ module ActiveResource
         def find_one(options)
           case from = options[:from]
           when Symbol
+            # TODO: this calls CustomMethods#get, should(?) be Faraday get
             instantiate_record(get(from, options[:params]))
           when String
             path = "#{from}#{query_string(options[:params])}"
-            instantiate_record(format.decode(connection.get(path, headers).body))
+            instantiate_record(connection.get(path, nil, headers).body)
           end
         end
 
@@ -992,7 +1010,7 @@ module ActiveResource
         def find_single(scope, options)
           prefix_options, query_options = split_options(options[:params])
           path = element_path(scope, prefix_options, query_options)
-          instantiate_record(format.decode(connection.get(path, headers).body), prefix_options)
+          instantiate_record(connection.get(path, nil, headers).body, prefix_options)
         end
 
         def instantiate_collection(collection, prefix_options = {})
@@ -1444,8 +1462,8 @@ module ActiveResource
       def load_attributes_from_response(response)
         if (response_code_allows_body?(response.status) &&
             (response.headers['Content-Length'].nil? || response.headers['Content-Length'] != "0") &&
-            !response.body.nil? && response.body.strip.size > 0)
-          load(self.class.format.decode(response.body), true)
+            !response.body.nil?)
+          load(response.body, true)
           @persisted = true
         end
       end
