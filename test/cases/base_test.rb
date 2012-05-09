@@ -104,7 +104,7 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   def test_user_variable_can_be_reset
-    skip
+    skip 'middleware'
     actor = Class.new(ActiveResource::Base)
     actor.site = 'http://cinema'
     assert_nil actor.user
@@ -115,7 +115,7 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   def test_password_variable_can_be_reset
-    skip
+    skip 'middleware'
     actor = Class.new(ActiveResource::Base)
     actor.site = 'http://cinema'
     assert_nil actor.password
@@ -126,7 +126,7 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   def test_timeout_variable_can_be_reset
-    skip
+    skip 'middleware'
     actor = Class.new(ActiveResource::Base)
     actor.site = 'http://cinema'
     assert_nil actor.timeout
@@ -137,7 +137,7 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   def test_ssl_options_hash_can_be_reset
-    skip
+    skip 'middleware'
     actor = Class.new(ActiveResource::Base)
     actor.site = 'https://cinema'
     assert_nil actor.ssl_options
