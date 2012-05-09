@@ -112,7 +112,7 @@ class FinderTest < ActiveSupport::TestCase
   end
 
   def test_find_all_by_symbol_from
-    Person.set_adapter(:test) { |stub| stub.get('/people/managers.json') { [200, {}, @people_david]} }
+    ActiveResource::Stubs.add { |stub| stub.get('/people/managers.json') { [200, {}, @people_david]} }
 
     people = Person.find(:all, :from => :managers)
     assert_equal 1, people.size
@@ -120,14 +120,14 @@ class FinderTest < ActiveSupport::TestCase
   end
 
   def test_find_single_by_from
-    Person.set_adapter(:test) { |stub| stub.get('/companies/1/manager.json') { [200, {}, @david]} }
+    ActiveResource::Stubs.add { |stub| stub.get('/companies/1/manager.json') { [200, {}, @david]} }
 
     david = Person.find(:one, :from => "/companies/1/manager.json")
     assert_equal "David", david.name
   end
 
   def test_find_single_by_symbol_from
-    Person.set_adapter(:test) { |stub| stub.get('/people/leader.json') { [200, {}, @david]} }
+    ActiveResource::Stubs.add { |stub| stub.get('/people/leader.json') { [200, {}, @david]} }
 
     david = Person.find(:one, :from => :leader)
     assert_equal "David", david.name
