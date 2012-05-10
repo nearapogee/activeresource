@@ -13,13 +13,11 @@ require 'uri'
 require 'faraday'
 require 'active_resource/faraday_extension'
 require 'active_resource/middleware/raise_error'
-require 'active_resource/middleware/parse_json'
-require 'active_resource/middleware/parse_xml'
+require 'active_resource/middleware/formats'
 
 require 'active_support/core_ext/uri'
 require 'active_resource/exceptions'
 require 'active_resource/connection'
-require 'active_resource/formats'
 require 'active_resource/schema'
 require 'active_resource/log_subscriber'
 require 'active_resource/associations'
@@ -530,20 +528,20 @@ module ActiveResource
       #   Person.format = :json
       #   Person.find(1) # => GET /people/1.json
       #
-      #   Person.format = ActiveResource::Formats::XmlFormat
+      #   Person.format = ActiveResource::Middleware::Formats::XmlFormat
       #   Person.find(1) # => GET /people/1.xml
       #
       # Default format is <tt>:json</tt>.
       def format=(mime_type_reference_or_format)
         format = mime_type_reference_or_format.is_a?(Symbol) ?
-          ActiveResource::Formats[mime_type_reference_or_format] : mime_type_reference_or_format
+          ActiveResource::Middleware::Formats[mime_type_reference_or_format] : mime_type_reference_or_format
 
         self._format = format
       end
 
-      # Returns the current format, default is ActiveResource::Formats::JsonFormat.
+      # Returns the current format, default is ActiveResource::Middleware::Formats::JsonFormat.
       def format
-        self._format || ActiveResource::Formats::JsonFormat
+        self._format || ActiveResource::Middleware::Formats::JsonFormat
       end
 
       # Sets the number of seconds after which requests to the REST API should time out.
@@ -614,8 +612,7 @@ module ActiveResource
               # @connection.timeout = timeout if timeout
               # @connection.ssl_options = ssl_options if ssl_options
 
-              builder.use(ActiveResource::Middleware::ParseJSON) if format == ActiveResource::Formats::JsonFormat
-              builder.use(ActiveResource::Middleware::ParseXML) if format == ActiveResource::Formats::XmlFormat
+              builder.use format
 
               # The raised errors need access to the response and
               # middleware does not have access to the response object
@@ -1351,7 +1348,7 @@ module ActiveResource
         remove_root = self.class.element_name == attributes.keys.first.to_s
       end
 
-      attributes = Formats.remove_root(attributes) if remove_root
+      attributes = Middleware::Formats.remove_root(attributes) if remove_root
 
       attributes.each do |key, value|
         @attributes[key.to_s] =
