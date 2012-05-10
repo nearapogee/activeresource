@@ -55,8 +55,8 @@ module ActiveResource
         #   Person.find(:all, :from => :active)
         def get(custom_method_name, options = {})
           hashified = connection.get(custom_method_collection_url(custom_method_name, options), nil, headers).body
-          derooted  = Formats.remove_root(hashified)
-          derooted.is_a?(Array) ? derooted.map { |e| Formats.remove_root(e) } : derooted
+          derooted  = Middleware::Formats.remove_root(hashified)
+          derooted.is_a?(Array) ? derooted.map { |e| Middleware::Formats.remove_root(e) } : derooted
         end
 
         def post(custom_method_name, options = {}, body = '')
