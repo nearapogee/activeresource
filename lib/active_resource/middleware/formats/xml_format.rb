@@ -27,17 +27,18 @@ module ActiveResource
           # @param [Hash] body The request body in Hash or String format, a string will be passed along unchanged
           # @param [options] options Passed along to ActiveSupport::JSON.encode if the first param is a hash
           # @return [String]
-          def encode(hash, options = nil)
-            hash.to_xml(options)
+          def encode(hash, options={})
+            hash.to_xml(options) if hash.respond_to?(:to_xml)
           end
         end
       
         def call(env)
-          env[:request_headers][CONTENT_TYPE] ||= MIME_TYPE
           # request phase
+          env[:request_headers][CONTENT_TYPE] ||= MIME_TYPE
           env[:body] = self.class.encode(env[:body]) unless env[:body].blank?
-        
-          @app.call(env).on_complete do # response phase
+
+          # response phase
+          @app.call(env).on_complete do
             env[:body] = self.class.decode(env[:body]) unless env[:body].blank?
           end
         end

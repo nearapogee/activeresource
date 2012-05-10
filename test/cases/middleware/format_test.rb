@@ -1,4 +1,3 @@
-require 'debugger'
 require 'abstract_unit'
 require "fixtures/person"
 require "fixtures/street_address"
@@ -11,22 +10,14 @@ class FormatTest < ActiveSupport::TestCase
     @programmers = [ @matz, @david ]
   end
 
-  def test_http_format_header_name
-    [:get, :head].each do |verb|
-      header_name = ActiveResource::Connection::HTTP_FORMAT_HEADER_NAMES[verb]
-      assert_equal 'Accept', header_name
-    end
-
-    [:patch, :put, :post].each do |verb|
-      header_name = ActiveResource::Connection::HTTP_FORMAT_HEADER_NAMES[verb]
-      assert_equal 'Content-Type', header_name
-    end
-  end
-
   def test_formats_on_single_element
     [ :json, :xml ].each do |format|
       using_format(Person, format) do
-        ActiveResource::HttpMock.respond_to.get "/people/1.#{format}", {'Accept' => ActiveResource::Middleware::Formats[format].mime_type}, ActiveResource::Middleware::Formats[format].encode(@david)
+        ActiveResource::Stubs.clear
+        Person.connection(true)
+        ActiveResource::Stubs.add do |stub|
+          stub.get("/people/1.#{format}") {[200, {}, ActiveResource::Middleware::Formats[format].encode(@david)]}
+        end
         assert_equal @david[:name], Person.find(1).name
       end
     end
@@ -35,7 +26,11 @@ class FormatTest < ActiveSupport::TestCase
   def test_formats_on_collection
     [ :json, :xml ].each do |format|
       using_format(Person, format) do
-        ActiveResource::HttpMock.respond_to.get "/people.#{format}", {'Accept' => ActiveResource::Middleware::Formats[format].mime_type}, ActiveResource::Middleware::Formats[format].encode(@programmers)
+        ActiveResource::Stubs.clear
+        Person.connection(true)
+        ActiveResource::Stubs.add do |stub|
+          stub.get("/people.#{format}") {[200, {}, ActiveResource::Middleware::Formats[format].encode(@programmers)]}
+        end
         remote_programmers = Person.find(:all)
         assert_equal 2, remote_programmers.size
         assert remote_programmers.find { |p| p.name == 'David' }
@@ -46,7 +41,11 @@ class FormatTest < ActiveSupport::TestCase
   def test_formats_on_custom_collection_method
     [ :json, :xml ].each do |format|
       using_format(Person, format) do
-        ActiveResource::HttpMock.respond_to.get "/people/retrieve.#{format}?name=David", {'Accept' => ActiveResource::Middleware::Formats[format].mime_type}, ActiveResource::Middleware::Formats[format].encode([@david])
+        ActiveResource::Stubs.clear
+        Person.connection(true)
+        ActiveResource::Stubs.add do |stub|
+          stub.get("/people/retrieve.#{format}?name=David") {[200, {}, ActiveResource::Middleware::Formats[format].encode([@david])]}
+        end
         remote_programmers = Person.get(:retrieve, :name => 'David')
         assert_equal 1, remote_programmers.size
         assert_equal @david[:id], remote_programmers[0]['id']
@@ -59,11 +58,13 @@ class FormatTest < ActiveSupport::TestCase
     [:json, :xml].each do |format|
       using_format(Person, format) do
         david = (format == :json ? { :person => @david } : @david)
-        ActiveResource::HttpMock.respond_to do |mock|
-          mock.get "/people/2.#{format}", { 'Accept' => ActiveResource::Middleware::Formats[format].mime_type }, ActiveResource::Middleware::Formats[format].encode(david)
-          mock.get "/people/2/shallow.#{format}", { 'Accept' => ActiveResource::Middleware::Formats[format].mime_type }, ActiveResource::Middleware::Formats[format].encode(david)
+        ActiveResource::Stubs.clear
+        Person.connection(true)
+        ActiveResource::Stubs.add do |stub|
+          stub.get("/people/2.#{format}") {[200, {}, ActiveResource::Middleware::Formats[format].encode(david)]}
+          stub.get("/people/2/shallow.#{format}") {[200, {}, ActiveResource::Middleware::Formats[format].encode(david)]}
         end
-
+      
         remote_programmer = Person.find(2).get(:shallow)
         assert_equal @david[:id], remote_programmer['id']
         assert_equal @david[:name], remote_programmer['name']
@@ -74,12 +75,18 @@ class FormatTest < ActiveSupport::TestCase
       ryan = ActiveResource::Middleware::Formats[format].encode(ryan_hash)
       using_format(Person, format) do
         remote_ryan = Person.new(:name => 'Ryan')
-        ActiveResource::HttpMock.respond_to.post "/people.#{format}", { 'Content-Type' => ActiveResource::Middleware::Formats[format].mime_type}, ryan, 201, { 'Location' => "/people/5.#{format}" }
+        ActiveResource::Stubs.clear
+        Person.connection(true)
+        ActiveResource::Stubs.add do |stub|
+          stub.post("/people.#{format}") {[201, {'Location' => "/people/5.#{format}"}, ryan]}
+          stub.post("/people/new/register.#{format}") {[201, {'Location' => "/people/5.#{format}"}, ryan]}
+        end
         remote_ryan.save
-
+      
         remote_ryan = Person.new(:name => 'Ryan')
-        ActiveResource::HttpMock.respond_to.post "/people/new/register.#{format}", { 'Content-Type' => ActiveResource::Middleware::Formats[format].mime_type}, ryan, 201, { 'Location' => "/people/5.#{format}" }
-        assert_equal ActiveResource::Response.new(ryan, 201, { 'Location' => "/people/5.#{format}" }), remote_ryan.post(:register)
+        response = remote_ryan.post(:register)
+        assert_equal({'Location' => "/people/5.#{format}"}, response.env[:response_headers])
+        assert_equal 201, response.env[:status]
       end
     end
   end
@@ -101,7 +108,11 @@ class FormatTest < ActiveSupport::TestCase
       remote_person = Person.new(person.update({:address => StreetAddress.new(address)}))
       assert_kind_of StreetAddress, remote_person.address
       using_format(Person, format) do
-        ActiveResource::HttpMock.respond_to.post "/people.#{format}", {'Content-Type' => ActiveResource::Middleware::Formats[format].mime_type}, encoded_person, 201, {'Location' => "/people/5.#{format}"}
+        ActiveResource::Stubs.clear
+        Person.connection(true)
+        ActiveResource::Stubs.add do |stub|
+          stub.post("/people.#{format}") {[201, {'Location' => "/people/5.#{format}"}, encoded_person]}
+        end
         remote_person.save
       end
     end
