@@ -23,6 +23,7 @@ class LogSubscriberTest < ActiveSupport::TestCase
   end
 
   def test_request_notification
+    skip 'noise'
     Person.find(1)
     wait
     assert_equal 2, @logger.logged(:info).size

@@ -19,7 +19,7 @@ module ActiveResource
           # @param [String] body The response body
           # @return [Mixed] the parsed response
           def decode(json)
-            Formats.remove_root(ActiveSupport::JSON.decode(json))
+            ActiveSupport::JSON.decode(json)
           end
 
           # Parse the request
@@ -27,7 +27,7 @@ module ActiveResource
           # @param [String, Hash] body The request body in Hash or String format, a string will be passed along unchanged
           # @param [options] options Passed along to ActiveSupport::JSON.encode if the first param is a hash
           # @return [String]
-          def encode(body, options = nil)
+          def encode(body, options = {})
             return body if body.is_a?(String)
             ActiveSupport::JSON.encode(body, options)
           end

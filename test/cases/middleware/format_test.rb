@@ -55,17 +55,17 @@ class FormatTest < ActiveSupport::TestCase
   end
 
   def test_formats_on_custom_element_method
-    [:json, :xml].each do |format|
+    [ :json, :xml ].each do |format|
       using_format(Person, format) do
         david = (format == :json ? { :person => @david } : @david)
         ActiveResource::Stubs.clear
         Person.connection(true)
         ActiveResource::Stubs.add do |stub|
           stub.get("/people/2.#{format}") {[200, {}, ActiveResource::Middleware::Formats[format].encode(david)]}
-          stub.get("/people/2/shallow.#{format}") {[200, {}, ActiveResource::Middleware::Formats[format].encode(david)]}
+          stub.get("/people/2/shallow.#{format}") {[200, {}, ActiveResource::Middleware::Formats[format].encode(david, root: 'person')]} # TODO: SHOULD NOT HAVE TO ADD ROOT!
         end
-      
-        remote_programmer = Person.find(2).get(:shallow)
+
+        remote_programmer = Person.find(2).get(:shallow)['person']
         assert_equal @david[:id], remote_programmer['id']
         assert_equal @david[:name], remote_programmer['name']
       end

@@ -1011,11 +1011,13 @@ module ActiveResource
         end
 
         def instantiate_collection(collection, prefix_options = {})
-          collection.collect! { |record| instantiate_record(record, prefix_options) }
+          rootless = ActiveResource::Middleware::Formats.remove_root(collection)
+          rootless.collect! { |record| instantiate_record(record, prefix_options) }
         end
 
         def instantiate_record(record, prefix_options = {})
-          new(record, true).tap do |resource|
+          rootless = ActiveResource::Middleware::Formats.remove_root(record)
+          new(rootless, true).tap do |resource|
             resource.prefix_options = prefix_options
           end
         end

@@ -3,6 +3,7 @@ require 'active_support/core_ext/object/inclusion'
 
 class HttpMockTest < ActiveSupport::TestCase
   setup do
+    skip
     @http = ActiveResource::HttpMock.new("http://example.com")
   end
 

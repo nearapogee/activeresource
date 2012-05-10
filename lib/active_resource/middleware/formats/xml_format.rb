@@ -19,7 +19,7 @@ module ActiveResource
           # @param [String] body The response body
           # @return [Mixed] the parsed response
           def decode(xml)
-            Formats.remove_root(Hash.from_xml(xml))
+            Hash.from_xml(xml)
           end
 
           # Parse the request
@@ -27,8 +27,8 @@ module ActiveResource
           # @param [Hash] body The request body in Hash or String format, a string will be passed along unchanged
           # @param [options] options Passed along to ActiveSupport::JSON.encode if the first param is a hash
           # @return [String]
-          def encode(hash, options={})
-            hash.to_xml(options) if hash.respond_to?(:to_xml)
+          def encode(body, options={})
+            body.to_xml(options) if body.respond_to?(:to_xml)
           end
         end
       
