@@ -615,13 +615,13 @@ module ActiveResource
               
               builder.use ActiveResource::Middleware::Rails
 
-              builder.use format
-
               # The raised errors need access to the response and
               # middleware does not have access to the response object
               # yet.
               #
               builder.use(ActiveResource::Response::RaiseError)
+
+              builder.use format
 
               # The adapter needs to be set last. It would make sense to set
               # put the RaiseErrors right before.

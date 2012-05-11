@@ -51,9 +51,8 @@ module ActiveResource
 
     # Grabs errors from a json response.
     def from_json(json, save_cache = false)
-      decoded = ActiveSupport::JSON.decode(json) || {} rescue {}
-      if decoded.kind_of?(Hash) && (decoded.has_key?('errors') || decoded.empty?)
-        errors = decoded['errors'] || {}
+      if json.kind_of?(Hash) && (json.has_key?('errors') || json.empty?)
+        errors = json['errors'] || {}
         if errors.kind_of?(Array)
           # 3.2.1-style with array of strings
           ActiveSupport::Deprecation.warn('Returning errors as an array of strings is deprecated.')
@@ -65,13 +64,13 @@ module ActiveResource
       else
         # <3.2-style respond_with - lacks 'errors' key
         ActiveSupport::Deprecation.warn('Returning errors as a hash without a root "errors" key is deprecated.')
-        from_hash decoded, save_cache
+        from_hash json, save_cache
       end
     end
 
     # Grabs errors from an XML response.
     def from_xml(xml, save_cache = false)
-      array = Array.wrap(Hash.from_xml(xml)['errors']['error']) rescue []
+      array = Array.wrap(xml['errors']['error']) rescue []
       from_array array, save_cache
     end
   end
