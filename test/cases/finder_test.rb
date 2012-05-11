@@ -112,8 +112,7 @@ class FinderTest < ActiveSupport::TestCase
   end
 
   def test_find_all_by_symbol_from
-    skip 'noise'
-    ActiveResource::Stubs.add { |stub| stub.get('/people/managers.json') { [200, {}, @people_david]} }
+    ActiveResource::Stubs.set { |stub| stub.get('/people/managers.json') { [200, {}, @people_david]} }
 
     people = Person.find(:all, :from => :managers)
     assert_equal 1, people.size
