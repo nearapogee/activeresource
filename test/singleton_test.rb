@@ -15,7 +15,7 @@ class SingletonTest < ActiveSupport::TestCase
   end
 
   def setup_weather_not_found
-    ActiveResource::Stubs.add do |stub|
+    ActiveResource::Stubs.set do |stub|
       stub.get('/weather.json')                     {[404, {}, '']}
     end
   end
@@ -95,8 +95,6 @@ class SingletonTest < ActiveSupport::TestCase
   end
 
   def test_not_found
-    ActiveResource::Stubs.clear
-    Weather.connection(true)
     setup_weather_not_found
 
     assert_raise ActiveResource::ResourceNotFound do

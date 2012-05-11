@@ -14,5 +14,10 @@ module ActiveResource
       @stubs = Faraday::Adapter::Test::Stubs.new
     end
 
+    def self.set
+      clear
+      yield @stubs
+    end
+
   end
 end

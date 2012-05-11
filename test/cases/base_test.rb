@@ -783,9 +783,7 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   def test_create_without_location
-    ActiveResource::Stubs.clear
-    Person.connection(true)
-    ActiveResource::Stubs.add do |stub|
+    ActiveResource::Stubs.set do |stub|
       stub.post("/people.json") {[201, {}, nil]}
     end
     person = Person.create(:name => 'Rick')
@@ -935,9 +933,7 @@ class BaseTest < ActiveSupport::TestCase
 
   def test_delete
     assert Person.delete(1)
-    ActiveResource::Stubs.clear
-    Person.connection true
-    ActiveResource::Stubs.add do |stub|
+    ActiveResource::Stubs.set do |stub|
       stub.get("/people/1.json") {[404, {}, nil]}
     end
     assert_raise(ActiveResource::ResourceNotFound) { Person.find(1) }
@@ -945,9 +941,7 @@ class BaseTest < ActiveSupport::TestCase
 
   def test_delete_with_custom_prefix
     assert StreetAddress.delete(1, :person_id => 1)
-    ActiveResource::Stubs.clear
-    StreetAddress.connection true
-    ActiveResource::Stubs.add do |stub|
+    ActiveResource::Stubs.set do |stub|
       stub.get("/people/1/addresses/1.json") {[404, {}, nil]}
     end
     assert_raise(ActiveResource::ResourceNotFound) { StreetAddress.find(1, :params => { :person_id => 1 }) }
@@ -955,9 +949,7 @@ class BaseTest < ActiveSupport::TestCase
 
   def test_delete_with_410_gone
     assert Person.delete(1)
-    ActiveResource::Stubs.clear
-    Person.connection true
-    ActiveResource::Stubs.add do |stub|
+    ActiveResource::Stubs.set do |stub|
       stub.get("/people/1.json") {[410, {}, nil]}
     end
     assert_raise(ActiveResource::ResourceGone) { Person.find(1) }
@@ -1027,9 +1019,7 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   def test_exists_with_410_gone
-    ActiveResource::Stubs.clear
-    Person.connection true
-    ActiveResource::Stubs.add do |stub|
+    ActiveResource::Stubs.set do |stub|
       stub.head("/people/1.json") {[410, {}, nil]}
     end
 

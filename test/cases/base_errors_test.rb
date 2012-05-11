@@ -29,8 +29,7 @@ class BaseErrorsTest < ActiveSupport::TestCase
   end
 
   def test_should_parse_json_errors_when_no_errors_key
-    ActiveResource::Stubs.clear
-    ActiveResource::Stubs.add do |stub|
+    ActiveResource::Stubs.set do |stub|
       stub.post("/people.json") {[422, {'Content-Type' => 'application/json; charset=utf-8'}, '{}']}
     end
 
@@ -99,9 +98,8 @@ class BaseErrorsTest < ActiveSupport::TestCase
   end
 
   def test_should_parse_json_string_errors_with_an_errors_key
-    ActiveResource::Stubs.clear
     json_body = %q({"errors":["Age can't be blank", "Name can't be blank", "Name must start with a letter", "Person quota full for today."]})
-    ActiveResource::Stubs.add do |stub|
+    ActiveResource::Stubs.set do |stub|
       stub.post("/people.json") {[422, {'Content-Type' => 'application/json; charset=utf-8'}, json_body]}
     end
 
@@ -116,9 +114,8 @@ class BaseErrorsTest < ActiveSupport::TestCase
   end
 
   def test_should_parse_3_1_style_json_errors
-    ActiveResource::Stubs.clear
     json_body = %q({"age":["can't be blank"],"name":["can't be blank", "must start with a letter"],"person":["quota full for today."]})
-    ActiveResource::Stubs.add do |stub|
+    ActiveResource::Stubs.set do |stub|
       stub.post("/people.json") {[422, {'Content-Type' => 'application/json; charset=utf-8'}, json_body]}
     end
 
