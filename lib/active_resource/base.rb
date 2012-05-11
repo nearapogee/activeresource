@@ -13,6 +13,7 @@ require 'uri'
 require 'faraday'
 require 'active_resource/faraday_extension'
 require 'active_resource/middleware/raise_error'
+require 'active_resource/middleware/logger'
 require 'active_resource/middleware/rails'
 require 'active_resource/middleware/formats'
 
@@ -622,6 +623,8 @@ module ActiveResource
               builder.use(ActiveResource::Response::RaiseError)
 
               builder.use format
+
+              builder.use ActiveResource::Middleware::Logger
 
               # The adapter needs to be set last. It would make sense to set
               # put the RaiseErrors right before.
