@@ -28,6 +28,9 @@ module ActiveResource
           # @param [options] options Passed along to ActiveSupport::JSON.encode if the first param is a hash
           # @return [String]
           def encode(body, options={})
+
+            # TODO: This to_xml does not match json's method. Wraps entire data structure
+            # in a <hash/> element.
             body.to_xml(options) if body.respond_to?(:to_xml)
           end
         end

@@ -13,6 +13,7 @@ require 'uri'
 require 'faraday'
 require 'active_resource/faraday_extension'
 require 'active_resource/middleware/raise_error'
+require 'active_resource/middleware/rails'
 require 'active_resource/middleware/formats'
 
 require 'active_support/core_ext/uri'
@@ -611,6 +612,8 @@ module ActiveResource
               # @connection.auth_type = auth_type if auth_type
               # @connection.timeout = timeout if timeout
               # @connection.ssl_options = ssl_options if ssl_options
+              
+              builder.use ActiveResource::Middleware::Rails
 
               builder.use format
 
@@ -1011,13 +1014,11 @@ module ActiveResource
         end
 
         def instantiate_collection(collection, prefix_options = {})
-          rootless = ActiveResource::Middleware::Formats.remove_root(collection)
-          rootless.collect! { |record| instantiate_record(record, prefix_options) }
+          collection.collect! { |record| instantiate_record(record, prefix_options) }
         end
 
         def instantiate_record(record, prefix_options = {})
-          rootless = ActiveResource::Middleware::Formats.remove_root(record)
-          new(rootless, true).tap do |resource|
+          new(record, true).tap do |resource|
             resource.prefix_options = prefix_options
           end
         end

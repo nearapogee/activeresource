@@ -62,10 +62,10 @@ class FormatTest < ActiveSupport::TestCase
         Person.connection(true)
         ActiveResource::Stubs.add do |stub|
           stub.get("/people/2.#{format}") {[200, {}, ActiveResource::Middleware::Formats[format].encode(david)]}
-          stub.get("/people/2/shallow.#{format}") {[200, {}, ActiveResource::Middleware::Formats[format].encode(david, root: 'person')]} # TODO: SHOULD NOT HAVE TO ADD ROOT!
+          stub.get("/people/2/shallow.#{format}") {[200, {}, ActiveResource::Middleware::Formats[format].encode(david)]}
         end
 
-        remote_programmer = Person.find(2).get(:shallow)['person']
+        remote_programmer = Person.find(2).get(:shallow)
         assert_equal @david[:id], remote_programmer['id']
         assert_equal @david[:name], remote_programmer['name']
       end
