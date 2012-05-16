@@ -37,47 +37,38 @@ class CustomMethodsTest < ActiveSupport::TestCase
     Person.password = nil
   end
 
-  def teardown
-    # ActiveResource::HttpMock.reset!
-  end
-
   def test_custom_collection_method
-    skip 'noise'
     # GET
     assert_equal([{ "id" => 1, "name" => 'Matz' }], Person.get(:retrieve, :name => 'Matz'))
 
     # POST
-    assert_equal(ActiveResource::Response.new("", 201, {}), Person.post(:hire, :name => 'Matz'))
+    assert_equal 201, Person.post(:hire, :name => 'Matz').status
 
     # PUT
-    assert_equal ActiveResource::Response.new("", 204, {}),
-                   Person.put(:promote, {:name => 'Matz'}, 'atestbody')
-    assert_equal ActiveResource::Response.new("", 204, {}), Person.put(:sort, :by => 'name')
+    assert_equal 204, Person.put(:promote, {:name => 'Matz'}, 'atestbody').status
+    assert_equal 204, Person.put(:sort, :by => 'name').status
 
     # DELETE
     Person.delete :deactivate, :name => 'Matz'
 
     # Nested resource
-    assert_equal ActiveResource::Response.new("", 204, {}), StreetAddress.put(:sort, :person_id => 1, :by => 'name')
+    assert_equal 204, StreetAddress.put(:sort, :person_id => 1, :by => 'name').status
   end
 
   def test_custom_element_method
-    skip 'noise'
-    # Test GET against an element URL
     assert_equal Person.find(1).get(:shallow), {"id" => 1, "name" => 'Matz'}
     assert_equal Person.find(1).get(:deep), {"id" => 1, "name" => 'Matz', "other" => 'other'}
 
     # Test PUT against an element URL
-    assert_equal ActiveResource::Response.new("", 204, {}), Person.find(1).put(:promote, {:position => 'Manager'}, 'body')
+    assert_equal 204, Person.find(1).put(:promote, {:position => 'Manager'}, 'body').status
 
     # Test DELETE against an element URL
-    assert_equal ActiveResource::Response.new("", 200, {}), Person.find(1).delete(:deactivate)
+    assert_equal 200, Person.find(1).delete(:deactivate).status
 
     # With nested resources
     assert_equal StreetAddress.find(1, :params => { :person_id => 1 }).get(:deep),
                   { "id" => 1, "street" => '12345 Street', "zip" => "27519" }
-    assert_equal ActiveResource::Response.new("", 204, {}),
-                   StreetAddress.find(1, :params => { :person_id => 1 }).put(:normalize_phone, :locale => 'US')
+    assert_equal 204, StreetAddress.find(1, :params => { :person_id => 1 }).put(:normalize_phone, :locale => 'US').status
   end
 
   def test_custom_new_element_method
