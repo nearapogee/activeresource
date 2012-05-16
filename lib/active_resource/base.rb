@@ -11,19 +11,18 @@ require 'active_support/core_ext/object/duplicable'
 require 'set'
 require 'uri'
 require 'faraday'
+
+require 'active_support/core_ext/uri'
+require 'active_resource/exceptions'
+require 'active_resource/schema'
+require 'active_resource/log_subscriber'
+require 'active_resource/associations'
+require 'active_resource/reflection'
 require 'active_resource/faraday_extension'
 require 'active_resource/middleware/raise_error'
 require 'active_resource/middleware/logger'
 require 'active_resource/middleware/rails'
 require 'active_resource/middleware/formats'
-
-require 'active_support/core_ext/uri'
-require 'active_resource/exceptions'
-require 'active_resource/connection'
-require 'active_resource/schema'
-require 'active_resource/log_subscriber'
-require 'active_resource/associations'
-require 'active_resource/reflection'
 
 module ActiveResource
   # ActiveResource::Base is the main class for mapping RESTful resources as models in a Rails application.
