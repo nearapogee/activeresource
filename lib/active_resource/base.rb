@@ -802,6 +802,7 @@ module ActiveResource
       # Returns the new resource instance.
       #
       def build(attributes = {})
+        # TODO get(path, params, headers)
         attrs = connection.get("#{new_element_path}").body.merge(attributes)
         self.new(attrs)
       end
@@ -943,6 +944,7 @@ module ActiveResource
       #   # Let's assume a request to events/5/cancel.json
       #   Event.delete(params[:id]) # sends DELETE /events/5
       def delete(id, options = {})
+        # TODO delete(path, params, headers)
         connection.delete(element_path(id, options))
       end
 
@@ -957,6 +959,7 @@ module ActiveResource
         if id
           prefix_options, query_options = split_options(options[:params])
           path = element_path(id, prefix_options, query_options)
+          # TODO head(path, params, headers)
           response = connection.head(path, headers)
           response.status.to_i == 200
         end
@@ -980,13 +983,16 @@ module ActiveResource
             case from = options[:from]
             when Symbol
               # TODO: this calls CustomMethods#get, should(?) be Faraday get
+              # TODO get(path, params, headers)
               instantiate_collection(get(from, options[:params]))
             when String
               path = "#{from}#{query_string(options[:params])}"
+              # TODO get(path, params, headers)
               instantiate_collection( (connection.get(path, nil, headers).body || []))
             else
               prefix_options, query_options = split_options(options[:params])
               path = collection_path(prefix_options, query_options)
+              # TODO get(path, params, headers)
               instantiate_collection( (connection.get(path, nil, headers).body || []), prefix_options )
             end
           rescue ActiveResource::ResourceNotFound
@@ -1001,9 +1007,11 @@ module ActiveResource
           case from = options[:from]
           when Symbol
             # TODO: this calls CustomMethods#get, should(?) be Faraday get
+            # TODO get(path, params, headers)
             instantiate_record(get(from, options[:params]))
           when String
             path = "#{from}#{query_string(options[:params])}"
+            # TODO get(path, params, headers)
             instantiate_record(connection.get(path, nil, headers).body)
           end
         end
@@ -1012,6 +1020,7 @@ module ActiveResource
         def find_single(scope, options)
           prefix_options, query_options = split_options(options[:params])
           path = element_path(scope, prefix_options, query_options)
+          # TODO get(path, params, headers)
           instantiate_record(connection.get(path, nil, headers).body, prefix_options)
         end
 
@@ -1278,7 +1287,8 @@ module ActiveResource
     #   Person.find(new_id) # 404 (Resource Not Found)
     def destroy
       run_callbacks :destroy do
-        connection.delete(element_path, self.class.headers)
+        # TODO delete(path, params, headers)
+        connection.delete(element_path, nil, self.class.headers)
       end
     end
 
@@ -1445,6 +1455,7 @@ module ActiveResource
       # Update the resource on the remote service.
       def update
         run_callbacks :update do
+          # TODO put(path, body, headers)
           connection.put(element_path(prefix_options), encode).tap do |response|
             load_attributes_from_response(response)
           end
@@ -1454,7 +1465,8 @@ module ActiveResource
       # Create (i.e., \save to the remote service) the \new resource.
       def create
         run_callbacks :create do
-         connection.post(collection_path).tap do |response|
+          # TODO post(path, body, headers)
+          connection.post(collection_path, encode).tap do |response|
             self.id = id_from_response(response)
             load_attributes_from_response(response)
           end

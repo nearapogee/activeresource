@@ -36,6 +36,8 @@ module ActiveResource
         # request phase
         def call(env)
           env[:request_headers][CONTENT_TYPE] ||= MIME_TYPE
+          # TODO: If we pass a reference to the instance in here, all encoding could
+          # be done here...
           env[:body] = self.class.encode(env[:body])
           @app.call(env).on_complete do # response phase
             env[:body] = self.class.decode(env[:body]) unless env[:body].blank?
