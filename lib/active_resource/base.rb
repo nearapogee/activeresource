@@ -635,6 +635,8 @@ module ActiveResource
               
               builder.use ActiveResource::Middleware::Rails
 
+              builder.basic_auth(user, password) if user || password
+
               # The raised errors need access to the response and
               # middleware does not have access to the response object
               # yet.
@@ -1615,4 +1617,5 @@ module ActiveResource
     include ActiveModel::Serializers::Xml
     include ActiveResource::Reflection
   end
+
 end
