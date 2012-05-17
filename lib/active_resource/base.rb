@@ -23,6 +23,7 @@ require 'active_resource/middleware/raise_error'
 require 'active_resource/middleware/logger'
 require 'active_resource/middleware/rails'
 require 'active_resource/middleware/formats'
+require 'active_resource/scope'
 
 module ActiveResource
   # ActiveResource::Base is the main class for mapping RESTful resources as models in a Rails application.
@@ -593,6 +594,25 @@ module ActiveResource
           connection(true).builder
         else
           connection.builder
+        end
+      end
+
+      # Scopes defined for this class
+      def scopes
+        @scopes ||= {}
+      end
+
+      def scope(name, callable)
+        name = name.to_sym
+        
+        # Create scope.
+        scopes[name] = lambda do |proxy, args|
+          ActiveResource::Scope.new(proxy, callable, args)
+        end
+
+        # Define scope method.
+        singleton_class.send :define_method, name do |*args|
+          scopes[name].call(self, args)
         end
       end
 
@@ -1484,6 +1504,7 @@ module ActiveResource
 
       # Takes a response from a typical create post and pulls the ID out
       def id_from_response(response)
+        # TODO: Shouldn't headers be accessed by response.headers['Location']?
         response['Location'][/\/([^\/]*?)(\.\w+)?$/, 1] if response['Location']
       end
 

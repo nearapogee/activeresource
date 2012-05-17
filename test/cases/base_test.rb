@@ -640,7 +640,6 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal [:person_id].to_set, StreetAddress.__send__(:prefix_parameters)
   end
 
-
   ########################################################################
   # Tests basic CRUD functions (find/save/create etc)
   ########################################################################
@@ -953,6 +952,25 @@ class BaseTest < ActiveSupport::TestCase
       stub.get("/people/1.json") {[410, {}, nil]}
     end
     assert_raise(ActiveResource::ResourceGone) { Person.find(1) }
+  end
+
+  ########################################################################
+  # Tests for scopes
+  ########################################################################
+  def test_add_scope
+    assert Person.scopes.include?(:bogus)
+    assert_kind_of ActiveResource::Scope, Person.bogus
+  end
+
+  def test_use_scope
+    skip 'figure out connection caching or preferably something else'
+    @people = { :people => [ { :person => { :id => 1, :name => 'Matz' } }, { :person => { :id => 2, :name => 'David' } }] }.to_json
+    ActiveResource::Stubs.set do |stub|
+      stub.get('/people.json') do |env|
+        env[:request_headers]['X-Auth'] == 'super-secret' ? [200, {}, @people] : [404, {}, '']
+      end
+    end
+    assert Person.auth('super-secret').all
   end
 
   ########################################################################

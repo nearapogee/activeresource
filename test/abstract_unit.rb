@@ -104,7 +104,7 @@ def setup_response
   @product = {id: 1, name: 'Rails book'}.to_json
   @inventory = {status: 'Sold Out', total: 10, used: 10}.to_json
 
-  ActiveResource::Stubs.add do |stub|
+  ActiveResource::Stubs.set do |stub|
     stub.get("/people/1.json")                {[200, {}, @matz]}
     stub.get("/people/1.xml")                 {[200, {}, @matz_xml]}
     stub.get("/people/2.xml")                 {[200, {}, @david ]} 
