@@ -35,7 +35,7 @@ class BasicAuthorizationTest < AuthorizationTest
         if env[:request_headers].include?('Authorization') && auth_header == env[:request_headers]['Authorization']
           [200, {}, @david]
         else
-          [401, {}, 'access denied']
+          [401, {}, '{"error":"access denied"}']
         end
       }
       # stub.get("/people/1.json") { |env| env[:request_headers] = @basic_authorization_request_header; [401, {'WWW-Authenticate' => 'i_should_be_ignored'}, '']}
@@ -43,42 +43,42 @@ class BasicAuthorizationTest < AuthorizationTest
         if env[:request_headers].include?('Authorization') && auth_header == env[:request_headers]['Authorization']
           [204, {}, '']
         else
-          [401, {}, 'access denied']
+          [401, {}, '{"error":"access denied"}']
         end
       }
       stub.delete("/people/2.json") { |env|
         if env[:request_headers].include?('Authorization') && auth_header == env[:request_headers]['Authorization']
           [200, {}, '']
         else
-          [401, {}, 'access denied']
+          [401, {}, '{"error":"access denied"}']
         end
       }
       stub.post("/people/2/addresses.json") { |env|
         if env[:request_headers].include?('Authorization') && auth_header == env[:request_headers]['Authorization']
           [201, {'Location' => '/people/1/addresses/5'}, '']
         else
-          [401, {}, 'access denied']
+          [401, {}, '{"error":"access denied"}']
         end
       }
       stub.head("/people/2.json") { |env|
         if env[:request_headers].include?('Authorization') && auth_header == env[:request_headers]['Authorization']
           [200, {}, '']
         else
-          [401, {}, 'access denied']
+          [401, {}, '{"error":"access denied"}']
         end
       }
       stub.get("/people/3.json") { |env| # no password
         if env[:request_headers].include?('Authorization') && 'Basic ' + ["david:"].pack('m').delete("\n") == env[:request_headers]['Authorization']
           [200, {}, @david]
         else
-          [401, {}, 'access denied']
+          [401, {}, '{"error":"access denied"}']
         end
       }
       stub.get("/people/4.json") { |env| # no username
         if env[:request_headers].include?('Authorization') && 'Basic ' + [":test123"].pack('m').delete("\n") == env[:request_headers]['Authorization']
           [200, {}, @david]
         else
-          [401, {}, 'access denied']
+          [401, {}, '{"error":"access denied"}']
         end
       }
     end
