@@ -309,7 +309,7 @@ module ActiveResource
 
       # Create scope.
       scopes[name] = lambda do |proxy, args|
-        ActiveResource::Scope.new(proxy, callable, args)
+        ActiveResource::RequestScope.new(proxy, callable, args)
       end
 
       # Define scope method.

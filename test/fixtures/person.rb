@@ -15,7 +15,7 @@ class Person < ActiveResource::Base
   self.adapter = :test
 
   scope :bogus, lambda {}
-  scope :auth, lambda { |token| middleware.insert 0, Test::Auth, token }
+  scope :auth, lambda { |token| insert 0, Test::Auth, token }
 end
 
 module External
