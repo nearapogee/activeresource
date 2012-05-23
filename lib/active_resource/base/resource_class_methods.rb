@@ -205,7 +205,7 @@ module ActiveResource
       rescue ActiveResource::ResourceNotFound
         # Swallowing ResourceNotFound exceptions and return nil - as per
         # ActiveRecord.
-        nil
+        []
       end
     end
 

@@ -970,6 +970,9 @@ class BaseTest < ActiveSupport::TestCase
       end
     end
     assert_kind_of Person, Person.auth('super-secret').first
+    assert_kind_of Array, Person.auth('super-secret').all
+    assert_nil Person.auth('wrong-secret').first
+    assert_equal [], Person.auth('wrong-secret').all
   end
 
   ########################################################################
