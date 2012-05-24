@@ -960,6 +960,7 @@ class BaseTest < ActiveSupport::TestCase
   def test_add_scope
     assert Person.scopes.include?(:bogus)
     assert_kind_of ActiveResource::RequestScope, Person.bogus
+    assert_kind_of ActiveResource::RequestScope, Person.new.bogus
   end
 
   def test_use_scope

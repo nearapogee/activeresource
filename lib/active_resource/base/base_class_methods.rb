@@ -312,10 +312,10 @@ module ActiveResource
         ActiveResource::RequestScope.new(proxy, callable, args)
       end
 
-      # Define scope method.
-      singleton_class.send :define_method, name do |*args|
-        scopes[name].call(self, args)
-      end
+      # Define scope methods.
+      method = lambda { |*args| scopes[name].call(self, args) }
+      singleton_class.send :define_method, name, &method
+      define_method name, &method
     end
 
     # An instance of ActiveResource::Connection that is the base \connection to the remote service.

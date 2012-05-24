@@ -378,6 +378,11 @@ module ActiveResource
       super({ :root => self.class.element_name }.merge(options))
     end
 
+    # Get class scopes
+    def scopes
+      self.class.scopes
+    end
+
     protected
     def connection(refresh = false)
       self.class.connection(refresh)

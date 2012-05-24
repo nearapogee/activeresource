@@ -6,7 +6,7 @@ module ActiveResource
   class RequestScope
     module ConnectionMethods
       def connection
-        @connection ||= proxy.connection.dup
+        @connection ||= proxy.send(:connection).dup
       end
     end
 
