@@ -4,13 +4,14 @@ lib = File.expand_path("#{File.dirname(__FILE__)}/../lib")
 $:.unshift(lib) unless $:.include?('lib') || $:.include?(lib)
 
 require 'minitest/autorun'
+require 'faraday'
 require 'active_resource'
 require 'active_support'
 require 'active_support/test_case'
 require 'setter_trap'
-require 'active_support/logger'
+#require 'active_support/logger' # not available in 3-2
 
-ActiveResource::Base.logger = ActiveSupport::Logger.new("#{File.dirname(__FILE__)}/debug.log")
+#ActiveResource::Base.logger = ActiveSupport::Logger.new("#{File.dirname(__FILE__)}/debug.log") # not available in 3-2
 
 def setup_response
   matz_hash = { 'person' => { :id => 1, :name => 'Matz' } }

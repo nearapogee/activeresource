@@ -4,9 +4,9 @@ gemspec
 
 local_rails_path = File.expand_path(File.dirname(__FILE__) + '/../rails')
 if File.exists?(local_rails_path)
-  rails_gem_source = { :path => local_rails_path }
+  rails_gem_source = { :path => local_rails_path, :tag => 'v3.2.3' }
 else
-  rails_gem_source = { :git => "git://github.com/rails/rails.git" }
+  rails_gem_source = { :git => "git://github.com/rails/rails.git", :tag => 'v3.2.3' }
 end
 
 gem 'activesupport', rails_gem_source.dup
