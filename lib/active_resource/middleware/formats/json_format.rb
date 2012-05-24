@@ -29,6 +29,7 @@ module ActiveResource
           # @return [String]
           def encode(body, options = {})
             return body if body.is_a?(String)
+            return '' if body.nil?
             ActiveSupport::JSON.encode(body, options)
           end
         end
